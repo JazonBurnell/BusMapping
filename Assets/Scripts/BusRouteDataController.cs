@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Xml;
 
 public class BusRouteDataController : MonoBehaviour {
+	public List<BusDataStop> busStops = new List<BusDataStop>();
 
 	// Use this for initialization
 	void Start () {
-		
+		this.BeginDownloadingDataForStops(this.LoadStopsData);	
 	}
 	
 	// Update is called once per frame
@@ -49,5 +51,51 @@ public class BusRouteDataController : MonoBehaviour {
 				dataReadyCallback(xmlParsing);
 			}
 		}
+	}
+
+	private void LoadStopsData(XMLQuickParser xmlData) {
+		int dataLength = 0;
+
+		foreach (XmlNode node in xmlData.xmlDoc) {
+			Debug.Log("node is: " + node.Name);
+
+			if (node.Name == "stops") {
+				foreach (XmlNode stopNode in node) {
+					dataLength++;
+
+//					if (dataLength < 99999) 
+					{
+						BusDataStop newStop = new BusDataStop();
+
+						foreach (XmlNode stopNodeElement in stopNode) {
+							if (stopNodeElement.Name == "name") {
+								newStop.name = stopNodeElement.InnerText;
+							}
+							else if (stopNodeElement.Name == "latitude") {
+								newStop.latitudeLongitude.latitude = double.Parse(stopNodeElement.InnerText);
+							}
+							else if (stopNodeElement.Name == "longitude") {
+								newStop.latitudeLongitude.longitude = double.Parse(stopNodeElement.InnerText);
+							}
+						}
+
+						this.busStops.Add(newStop);
+
+//						this.AddIndicatorAtLatLong(new LatitudeLongitude(latitude, longitude));
+					}
+//					else {
+//						break;
+//					}
+				}
+			}
+
+
+		}
+
+		//		Debug.Log("dataLength: " + dataLength);
+
+		//		for (int i = 0; i < xmlData.NumberOfNodesInFirstChildAtDepth(1); i++) {
+		//
+		//		}
 	}
 }
