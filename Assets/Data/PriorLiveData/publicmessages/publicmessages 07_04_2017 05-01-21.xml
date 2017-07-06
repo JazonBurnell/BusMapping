@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE publicmessages [
+<!ELEMENT publicmessages (report-generated, message*)>
+	<!ELEMENT report-generated (#PCDATA)>
+		<!-- timezone is an integer between -12 and 12 inclusive. -->
+       <!-- the timezone is reference to GMT and is -5 for Acadia. -->
+		<!ATTLIST report-generated timezone CDATA #REQUIRED>
+    <!ELEMENT message (messagetext, startdate, enddate, starttime, endtime)>
+       <!-- priority 1 = low, 2 = med, 3 = high -->
+       <!ATTLIST message priority (1|2|3) #REQUIRED>
+       <!-- dates are in format 'yyyy-mm-dd' -->
+       <!ELEMENT messagetext (#PCDATA)>
+       <!ELEMENT startdate (#PCDATA)>
+       <!ELEMENT enddate (#PCDATA)>
+       <!-- times are in format 'hh:mm' -->
+       <!ELEMENT starttime (#PCDATA)>
+       <!ELEMENT endtime (#PCDATA)>
+]>
+
+<publicmessages><report-generated timezone="-9">2017-07-04 05:00</report-generated></publicmessages>
