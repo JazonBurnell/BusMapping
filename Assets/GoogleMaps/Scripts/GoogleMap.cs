@@ -87,7 +87,10 @@ public class GoogleMap : MonoBehaviour
 
 		var req = new WWW (url + "?" + qs);
 		yield return req;
-		GetComponent<Renderer>().material.mainTexture = req.texture;
+
+		if (req.error != null && req.texture != null) {
+			GetComponent<Renderer>().material.mainTexture = req.texture;
+		}
 	}
 	
 	

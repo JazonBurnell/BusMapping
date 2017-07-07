@@ -6,26 +6,19 @@ public class AppController : MonoBehaviour {
 	public MapIndicatorsController mapIndicatorController;
 	public BusRouteDataController busRouteDataController;
 
-	private bool haveAddedStopData = false;
-
-	void Awake () {
-
-	}
-
 	// Use this for initialization
 	void Start () {
-		
+		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.Stops, this.LoadCompletedForDataType);
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		if (!this.haveAddedStopData) {
-			if (this.busRouteDataController.busStops.Count > 0) {
-				this.haveAddedStopData = true;
 
-				foreach (BusDataStop busStop in this.busRouteDataController.busStops) {
-					this.mapIndicatorController.AddIndicatorAtLatLong(busStop.latitudeLongitude);
-				}
+	private void SetFloatData(float floatVal, System.Action<float> setter) {
+		setter(floatVal);
+	}
+
+	private void LoadCompletedForDataType(BusDataType dataType) {
+		if (dataType == BusDataType.Stops) {
+			foreach (BusDataStop busStop in this.busRouteDataController.busStops) {
+				this.mapIndicatorController.AddIndicatorAtLatLong(busStop.latitudeLongitude);
 			}
 		}
 	}
