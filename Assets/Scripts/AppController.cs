@@ -9,6 +9,7 @@ public class AppController : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.Stops, this.LoadCompletedForDataType);
+		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.RouteStops, this.LoadCompletedForDataType);
 	}
 
 	private void SetFloatData(float floatVal, System.Action<float> setter) {
@@ -20,6 +21,9 @@ public class AppController : MonoBehaviour {
 			foreach (BusDataStop busStop in this.busRouteDataController.busStops) {
 				this.mapIndicatorController.AddIndicatorAtLatLong(busStop.latitudeLongitude);
 			}
+		}
+		else if (dataType == BusDataType.RouteStops) {
+
 		}
 	}
 }

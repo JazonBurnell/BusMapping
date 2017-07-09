@@ -44,7 +44,9 @@ class BusRouteItemInfoSet : System.Object {
 }
 
 public class BusRouteDataController : MonoBehaviour {
+	// Raw Data
 	public List<BusDataStop> busStops = new List<BusDataStop>();
+	public List<BusRouteStopItemData> busRouteStops = new List<BusRouteStopItemData>();
 
 	public bool usePredownloadedFiles = true;
 	public BusRoutePredownloadDataSet predownloadedDataSet = new BusRoutePredownloadDataSet();
@@ -108,23 +110,24 @@ public class BusRouteDataController : MonoBehaviour {
 	private void CreateParserForData(BusDataType dataType, string infoString, string dataString, System.Action<BusDataType> dataReadyCallback) {
 		XMLQuickParser xmlParsing = new XMLQuickParser(infoString, dataString);
 
-		if (dataType == BusDataType.Stops)
-			this.LoadDataIntoObjects<BusDataStop>(xmlParsing, this.busStops, dataReadyCallback);
+		if (dataType == BusDataType.Stops) {
+			this.LoadDataIntoObjects<BusDataStop>(xmlParsing, "stops", this.busStops, dataReadyCallback);
+
+			Debug.Log("Stops, lowest id: " + BusDataStop._lowestIdValue + " highest id: " + BusDataStop._highestIdValue);
+		}
+		else if (dataType == BusDataType.RouteStops) {
+			this.LoadDataIntoObjects<BusRouteStopItemData>(xmlParsing, "routestops", this.busRouteStops, dataReadyCallback);
+		}
 		else
 			Debug.LogError("No loading algorithm specified for dataType: " + dataType);
 	}
 
-	// string root = "stops"
-	// setData<string attributeName, setData<float>>
-
-//	private void LoadDataIntoClassObject
-
-	private void LoadDataIntoObjects<T>(XMLQuickParser xmlData, List<T> dataArray, System.Action<BusDataType> dataReadyCallback) where T : BusDataBaseObject {
+	private void LoadDataIntoObjects<T>(XMLQuickParser xmlData, string rootNodeName, List<T> dataArray, System.Action<BusDataType> dataReadyCallback) where T : BusDataBaseObject {
 		int dataLength = 0;
 
 		try {
 			foreach (XmlNode node in xmlData.xmlDoc) {
-				if (node.Name == "stops") {
+				if (node.Name == rootNodeName) {
 					foreach (XmlNode stopNode in node) {
 						dataLength++;
 
@@ -135,6 +138,9 @@ public class BusRouteDataController : MonoBehaviour {
 
 						if (typeof(T) == typeof(BusDataStop)) {
 							dataObj = new BusDataStop();
+						}
+						else if (typeof(T) == typeof(BusRouteStopItemData)) {
+							dataObj = new BusRouteStopItemData();
 						}
 						else {
 							Debug.LogWarning("No class defined for T: " + typeof(T).ToString());
@@ -155,5 +161,7 @@ public class BusRouteDataController : MonoBehaviour {
 		catch (System.Exception e) {
 			Debug.LogError("Failed to parse data for type: " + BusDataType.Stops + " error: " + e.ToString());
 		}
+
+		Debug.Log("Loaded data count: " + dataLength + " for type: " + typeof(T).ToString());
 	}
 }
