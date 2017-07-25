@@ -4,6 +4,10 @@ using UnityEngine;
 
 public abstract class BusDataBaseObject : System.Object {
 	public virtual void ParseAndLoadDataElement(string elementName, string elementValue) { }
+
+	public virtual void ParseAndLoadFinishedForObject() { }
+
+	public virtual void ParseAndLoadFinishedForClass() { }
 }
 
 public class BusDataStop : BusDataBaseObject {
@@ -15,11 +19,12 @@ public class BusDataStop : BusDataBaseObject {
 	public static int _highestIdValue = -1;
 
 	private static BusDataStop[] _busStopsById = new BusDataStop[2000]; // shifted 1000, typical range is 1437 to 2820
+	private const int kBusStopByIdIndexOffset = 1000;
 
 	private static void StoreBusDataStop(BusDataStop busStop) {
-		if (busStop.id > 1000 && busStop.id < (_busStopsById.Length + 1000)) {
-			if (_busStopsById[busStop.id - 1000] == null) {
-				_busStopsById[busStop.id - 1000] = busStop;
+		if (busStop.id > kBusStopByIdIndexOffset && busStop.id < (_busStopsById.Length + kBusStopByIdIndexOffset)) {
+			if (_busStopsById[busStop.id - kBusStopByIdIndexOffset] == null) {
+				_busStopsById[busStop.id - kBusStopByIdIndexOffset] = busStop;
 			}
 			else {
 				Debug.LogError("BusDataStop collision (duplicate bus stop ids) for id: " + busStop.id);
@@ -27,6 +32,18 @@ public class BusDataStop : BusDataBaseObject {
 		}
 		else {
 			Debug.LogError("Bus stop id out of range 1000 to 3000: " + busStop.id);
+		}
+	}
+
+	public static BusDataStop BusStopByStopId(int stopId) {
+		int stopIdIndex = stopId - kBusStopByIdIndexOffset;
+
+		if (_busStopsById != null && _busStopsById.Length > stopIdIndex) {
+			return _busStopsById[stopIdIndex];
+		}
+		else {
+			Debug.LogError("No bus stop populated for stop id: " + stopId);
+			return null;
 		}
 	}
 
@@ -88,7 +105,14 @@ public class BusRouteStopItemData : BusDataBaseObject {
 	public int stopId;
 	public int sortOrder;
 
+	private static bool _haveSortedBusRouteStops = false;
+	private static Dictionary<int, List<BusRouteStopItemData>> _sortedBusRouteStopsByRouteId = new Dictionary<int, List<BusRouteStopItemData>>();
+
 	public override void ParseAndLoadDataElement(string elementName, string elementValue) {
+		if (_haveSortedBusRouteStops) {
+			Debug.LogError("BusRouteStopItemData.ParseAndLoadDataElement called after _busRouteSortedStopIds already sorted");
+		}
+
 		if (elementName == "route_number") {
 			this.routeNumber = int.Parse(elementValue);
 		}
@@ -101,6 +125,77 @@ public class BusRouteStopItemData : BusDataBaseObject {
 		else {
 			Debug.LogWarning("Unknown elementName: " + elementName);
 		}
+	}
+
+	//
+	// Data Accessors
+	//
+
+	public static int NumberOfRouteStopItemsForRoute(int routeId) {
+		if (!_haveSortedBusRouteStops) 
+			Debug.LogError("_haveSortedBusRouteStops = false !");
+
+		if (_sortedBusRouteStopsByRouteId.ContainsKey(routeId)) {
+			return _sortedBusRouteStopsByRouteId[routeId].Count;
+		}
+		else {
+			Debug.LogError("No stop items found for route: " + routeId);
+
+			return -1;
+		}
+	}
+
+	public static BusRouteStopItemData RouteStopItemForRouteAtIndex(int routeId, int index) {
+		if (!_haveSortedBusRouteStops) 
+			Debug.LogError("_haveSortedBusRouteStops = false !");
+
+		if (_sortedBusRouteStopsByRouteId.ContainsKey(routeId)) {
+			return _sortedBusRouteStopsByRouteId[routeId][index];
+		}
+		else {
+			Debug.LogError("No stop items found for route: " + routeId);
+
+			return null;
+		}
+	}
+
+	//
+	// Overrides
+	//
+
+	private const int kRouteStopItemListLength = 200;
+
+	public override void ParseAndLoadFinishedForObject() { 
+		if (this.routeNumber > 0 && this.stopId > 0 && this.sortOrder > 0) {
+			if (!_sortedBusRouteStopsByRouteId.ContainsKey(this.routeNumber)) {
+				_sortedBusRouteStopsByRouteId.Add(this.routeNumber, new List<BusRouteStopItemData>(kRouteStopItemListLength));
+			}
+			else {
+				if (_sortedBusRouteStopsByRouteId[this.routeNumber].Count > kRouteStopItemListLength) {
+					Debug.LogWarning("Should increase capacity for _busRouteSortedStopIds arrays");
+				}
+			}
+
+			_sortedBusRouteStopsByRouteId[this.routeNumber].Add(this);
+		}
+		else {
+			Debug.LogError("ParseAndLoadFinishedForObject finished without all data");
+		}
+	}
+
+	public override void ParseAndLoadFinishedForClass() {
+		foreach (KeyValuePair<int, List<BusRouteStopItemData>> routeSetPair in _sortedBusRouteStopsByRouteId) {
+			Debug.Log("--------- BusRouteStopItemData.ParseAndLoadFinishedForClass route: " + routeSetPair.Key + " coutn: " + routeSetPair.Value.Count);
+
+			routeSetPair.Value.Sort(delegate(BusRouteStopItemData x, BusRouteStopItemData y) {
+				if (x.sortOrder == y.sortOrder)
+					return 0;
+				else
+					return (x.sortOrder > y.sortOrder) ? 1 : -1;	
+			});
+		}
+
+		_haveSortedBusRouteStops = true;
 	}
 
 /*

@@ -44,10 +44,17 @@ class BusRouteItemInfoSet : System.Object {
 }
 
 public class BusRouteDataController : MonoBehaviour {
+	// GTFS Data
+	public BusGTFSDataController gtfsDataController;
+
 	// Raw Data
 	public List<BusDataStop> busStops = new List<BusDataStop>();
 	public List<BusRouteStopItemData> busRouteStops = new List<BusRouteStopItemData>();
 
+	// Processed data
+//	public Dictionary<int, BusRouteStopsDataSet> busRouteSortedStopIds = new Dictionary<int, BusRouteStopsDataSet>();
+
+	// Using pre-downloaded data
 	public bool usePredownloadedFiles = true;
 	public BusRoutePredownloadDataSet predownloadedDataSet = new BusRoutePredownloadDataSet();
 	
@@ -73,6 +80,14 @@ public class BusRouteDataController : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	// 
+	// Data Retreival
+	//
+
+	public BusDataStop BusStopForStopId(int stopId) {
+		return BusDataStop.BusStopByStopId(stopId);
 	}
 
 	//
@@ -111,27 +126,28 @@ public class BusRouteDataController : MonoBehaviour {
 		XMLQuickParser xmlParsing = new XMLQuickParser(infoString, dataString);
 
 		if (dataType == BusDataType.Stops) {
-			this.LoadDataIntoObjects<BusDataStop>(xmlParsing, "stops", this.busStops, dataReadyCallback);
+			this.LoadDataIntoObjects<BusDataStop>(dataType, xmlParsing, "stops", this.busStops, dataReadyCallback);
 
 			Debug.Log("Stops, lowest id: " + BusDataStop._lowestIdValue + " highest id: " + BusDataStop._highestIdValue);
 		}
 		else if (dataType == BusDataType.RouteStops) {
-			this.LoadDataIntoObjects<BusRouteStopItemData>(xmlParsing, "routestops", this.busRouteStops, dataReadyCallback);
+			this.LoadDataIntoObjects<BusRouteStopItemData>(dataType, xmlParsing, "routestops", this.busRouteStops, dataReadyCallback);
 		}
-		else
+		else {
 			Debug.LogError("No loading algorithm specified for dataType: " + dataType);
+		}
 	}
 
-	private void LoadDataIntoObjects<T>(XMLQuickParser xmlData, string rootNodeName, List<T> dataArray, System.Action<BusDataType> dataReadyCallback) where T : BusDataBaseObject {
+	private void LoadDataIntoObjects<T>(BusDataType busDataType, XMLQuickParser xmlData, string rootNodeName, List<T> dataArray, System.Action<BusDataType> dataReadyCallback) where T : BusDataBaseObject {
 		int dataLength = 0;
 
 		try {
+			BusDataBaseObject dataObj = null;
+
 			foreach (XmlNode node in xmlData.xmlDoc) {
 				if (node.Name == rootNodeName) {
 					foreach (XmlNode stopNode in node) {
 						dataLength++;
-
-						BusDataBaseObject dataObj = null;
 
 						// Hmm... need to look up this error
 //						dataObj = new T(); // Cannot create an instance of the variable type `T' because it does not have the new() constraint
@@ -144,19 +160,28 @@ public class BusRouteDataController : MonoBehaviour {
 						}
 						else {
 							Debug.LogWarning("No class defined for T: " + typeof(T).ToString());
+							dataObj = null;
 						}
 
 						foreach (XmlNode stopNodeElement in stopNode) {
 							dataObj.ParseAndLoadDataElement(stopNodeElement.Name, stopNodeElement.InnerText);
 						}
 
+						dataObj.ParseAndLoadFinishedForObject();
+
 						dataArray.Add((T)dataObj);
 					}
 				}
 			}
 
-			if (dataReadyCallback != null)
-				dataReadyCallback(BusDataType.Stops);
+			if (dataObj != null)
+				dataObj.ParseAndLoadFinishedForClass();
+			else
+				Debug.LogError("dataObj null on ParseAndLoadFinishedForClass");
+
+			if (dataReadyCallback != null) {
+				dataReadyCallback(busDataType);
+			}
 		}
 		catch (System.Exception e) {
 			Debug.LogError("Failed to parse data for type: " + BusDataType.Stops + " error: " + e.ToString());

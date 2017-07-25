@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 25513110}
   - component: {fileID: 25513115}
   - component: {fileID: 25513114}
+  - component: {fileID: 25513116}
   m_Layer: 0
   m_Name: Map Quad
   m_TagString: Untagged
@@ -228,6 +229,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54da9e842664e495aae50a111eed0788, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gtfsDataController: {fileID: 25513116}
   usePredownloadedFiles: 1
   predownloadedDataSet:
     stopDepartures: []
@@ -238,6 +240,18 @@ MonoBehaviour:
     - {fileID: 4900000, guid: 729fe8acd9389423ab1eb9c05aed8d02, type: 3}
     routes: []
     vehicleLocation: []
+--- !u!114 &25513116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 25513108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9dcd77cabaf7469e99ce0d967e40db5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shapesTextData: {fileID: 4900000, guid: 34a0bab6b92f74ca89723afd2b23b940, type: 3}
 --- !u!1 &909206705
 GameObject:
   m_ObjectHideFlags: 0
