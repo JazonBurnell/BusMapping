@@ -6,6 +6,8 @@ public class AppController : MonoBehaviour {
 	public MapIndicatorsController mapIndicatorController;
 	public BusRouteDataController busRouteDataController;
 
+	public LineRenderer lineRenderer;
+
 	// Use this for initialization
 	void Start () {
 //		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.Stops, this.LoadCompletedForDataType);
@@ -17,13 +19,27 @@ public class AppController : MonoBehaviour {
 	}
 
 	private IEnumerator co_LoadCompletedForGTFSDataShapes() {
-		string routeStringId = "13_IB";//"3C_OB_CNT";//	this.busRouteDataController.gtfsDataController.shapesLatLongsByRouteStringId.Keys[0];
+		string routeStringId = "3C_OB_CNT";// "102_IB";// "13_IB";//"3C_OB_CNT";//	this.busRouteDataController.gtfsDataController.shapesLatLongsByRouteStringId.Keys[0];
+
+		int latLongCount = this.busRouteDataController.gtfsDataController.shapesLatLongsByRouteStringId[routeStringId].Count;
+
+		List<Vector3> linePathPoints = new List<Vector3>(latLongCount);
 
 		foreach (LatitudeLongitude latLong in this.busRouteDataController.gtfsDataController.shapesLatLongsByRouteStringId[routeStringId]) {
-			this.mapIndicatorController.AddIndicatorAtLatLong(latLong);
+			Vector3 addedPos = this.mapIndicatorController.AddIndicatorAtLatLong(latLong, 0);
+
+			linePathPoints.Add(addedPos);
+
+			this.lineRenderer.numPositions = linePathPoints.Count;
+			this.lineRenderer.SetPositions(linePathPoints.ToArray());
 
 			yield return null;
 		}
+
+		this.lineRenderer.numPositions = linePathPoints.Count;
+		this.lineRenderer.SetPositions(linePathPoints.ToArray());
+
+		yield return null;
 	}
 
 //	private void SetFloatData(float floatVal, System.Action<float> setter) {
@@ -61,7 +77,7 @@ public class AppController : MonoBehaviour {
 
 				BusDataStop busStop = this.busRouteDataController.BusStopForStopId(routeStopItem.stopId);
 
-				this.mapIndicatorController.AddIndicatorAtLatLong(busStop.latitudeLongitude, 3);
+				this.mapIndicatorController.AddIndicatorAtLatLong(busStop.latitudeLongitude, 1);
 
 				Debug.Log("Adding routeStopItem sort id: " + routeStopItem.sortOrder + " stopIds are equal: " + (routeStopItem.stopId == busStop.id).ToString());
 

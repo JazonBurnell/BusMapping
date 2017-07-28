@@ -76,18 +76,22 @@ public class MapIndicatorsController : MonoBehaviour {
 		this.referenceCube.transform.localPosition = localPos;
 	}
 
-	public MeshRenderer AddIndicatorAtLatLong(LatitudeLongitude latLongIn, float scale = 1) {
+	public Vector3 AddIndicatorAtLatLong(LatitudeLongitude latLongIn, float scale = 1) {
 		LatitudeLongitude relativeLatLongDelta = latLongIn - this.centerPosition;
 
 		Vector3 localPos = new Vector3((float)(relativeLatLongDelta.longitude * this.scalar1), ((float)(relativeLatLongDelta.latitude * this.scalar2)), 0);
 
-		MeshRenderer newIndicator = Instantiate<MeshRenderer>(this.referenceCube);
-		newIndicator.transform.parent = this.referenceCube.transform.parent;
+		if (scale != 0) {
+			MeshRenderer newIndicator = Instantiate<MeshRenderer>(this.referenceCube);
+			newIndicator.transform.parent = this.referenceCube.transform.parent;
 
-		newIndicator.transform.localPosition = localPos;
-		newIndicator.transform.localScale = newIndicator.transform.localScale * scale;
+			newIndicator.transform.localPosition = localPos;
+			newIndicator.transform.localScale = newIndicator.transform.localScale * scale;
+		}
 
-		return newIndicator;
+		return localPos;
+
+//		return newIndicator;
 	}
 }
 
