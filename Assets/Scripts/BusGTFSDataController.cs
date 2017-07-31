@@ -68,7 +68,7 @@ public class BusGTFSDataController : MonoBehaviour {
 				Debug.LogWarning("Out of order stop detected at count: " + this.stopInfos.Count);
 			}
 			else {
-				while (this.stopInfos.Count < stopId)
+				while (this.stopInfos.Count < (stopId - 1))
 					this.stopInfos.Add(nullStop);
 
 				this.stopInfos.Add(newStopInfo);
@@ -92,6 +92,52 @@ public class BusGTFSDataController : MonoBehaviour {
 	// Stop Times
 	//
 
+	public TextAsset stopTimesTextData;
+
+	public struct StopPointInfo {
+		public string arrivalTimeString;
+		public string departureTimeString;
+
+		public int stopId;
+		public int sequence;
+
+		// Processed
+//		public float arrivalTimeSeconds;
+	}
+
+	public Dictionary<string, List<StopPointInfo>> stopPointInfosByTripId = new Dictionary<string, List<StopPointInfo>>();
+
+	public void LoadTripStopPointsData(System.Action dataLoadedCallback) {
+		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+			string tripId = lineComponents[0];
+
+			if (!this.stopPointInfosByTripId.ContainsKey(tripId)) {
+				this.stopPointInfosByTripId.Add(tripId, new List<StopPointInfo>(100));
+			}
+
+			StopPointInfo newStopPoint = new StopPointInfo();
+
+			newStopPoint.arrivalTimeString = lineComponents[1];
+			newStopPoint.departureTimeString = lineComponents[2];
+			newStopPoint.stopId = int.Parse(lineComponents[3]);
+			newStopPoint.sequence = int.Parse(lineComponents[4]);
+
+			this.stopPointInfosByTripId[tripId].Add(newStopPoint);
+		};
+
+		this.ProcessCSVData(this.stopTimesTextData.text, lineProcessor, 7, dataLoadedCallback);
+
+		#if UNITY_EDITOR
+		// Verify sequence id order?
+		#endif
+	}
+
+	//
+	// Trips
+	//
+
+
+
 	//
 	// General Processing
 	//
@@ -106,8 +152,8 @@ public class BusGTFSDataController : MonoBehaviour {
 				processLineCallback(lineComponents);
 			}
 			else {
-				if (i != csvTextLines.Length - 1)
-					Debug.LogError("Line: " + i + " doesn't have 3 components: " + csvTextLines[i]);
+				if (i != csvTextLines.Length - 1) // Last line might be empty
+					Debug.LogError("Line: " + i + " doesn't have " + expectedNumberOfColumns + " components: " + csvTextLines[i] + " instead has: " + lineComponents.Length);
 			}
 		}
 

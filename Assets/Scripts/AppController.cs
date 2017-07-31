@@ -13,9 +13,13 @@ public class AppController : MonoBehaviour {
 //		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.Stops, this.LoadCompletedForDataType);
 //		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.RouteStops, this.LoadCompletedForDataType);
 
-		this.busRouteDataController.gtfsDataController.LoadShapesData(delegate() {
-			this.StartCoroutine(this.co_LoadCompletedForGTFSDataShapes());
-		});
+//		this.busRouteDataController.gtfsDataController.LoadShapesData(delegate() {
+//			this.StartCoroutine(this.co_LoadCompletedForGTFSDataShapes());
+//		});
+
+		this.busRouteDataController.gtfsDataController.LoadTripStopPointsData(delegate() {
+			Debug.Log("Trip stop points loaded!");
+		});			
 
 //		this.busRouteDataController.gtfsDataController.LoadStopsData(delegate() {
 //			foreach (BusGTFSDataController.StopInfo stopInfo in this.busRouteDataController.gtfsDataController.stopInfos) {
