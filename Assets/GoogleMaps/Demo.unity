@@ -254,6 +254,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shapesTextData: {fileID: 4900000, guid: 34a0bab6b92f74ca89723afd2b23b940, type: 3}
+  stopsTextData: {fileID: 4900000, guid: f608bc9e6eec94658b0b7bad6192c6c0, type: 3}
 --- !u!1 &67767252
 GameObject:
   m_ObjectHideFlags: 0

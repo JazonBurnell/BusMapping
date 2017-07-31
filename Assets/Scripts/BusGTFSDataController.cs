@@ -5,7 +5,7 @@ using UnityEngine;
 public class BusGTFSDataController : MonoBehaviour {
 	
 	//
-	// Shapes data for routes
+	// Shapes
 	//
 
 	public TextAsset shapesTextData;
@@ -36,7 +36,61 @@ public class BusGTFSDataController : MonoBehaviour {
 		#endif
 	}
 
+	//
+	// Stops
+	//
 
+	public TextAsset stopsTextData;
+
+	public struct StopInfo {
+		public LatitudeLongitude latlong;
+		public int stopId;
+//		public int btId; // not sure what bt_id is for... 
+		public string stopName;
+	}
+
+	public List<StopInfo> stopInfos; // indexed by stopId
+
+	public void LoadStopsData(System.Action dataLoadedCallback) {
+		this.stopInfos = new List<StopInfo>(7050); // highest stopId is 7012, but there are tons of gaps within that
+
+		StopInfo nullStop = new StopInfo();
+
+		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+			int stopId = int.Parse(lineComponents[2]);
+
+			StopInfo newStopInfo = new StopInfo();
+			newStopInfo.latlong = new LatitudeLongitude(double.Parse(lineComponents[0]), double.Parse(lineComponents[1]));
+			newStopInfo.stopId = stopId;
+			newStopInfo.stopName = lineComponents[4];
+
+			if (this.stopInfos.Count >= stopId) {
+				Debug.LogWarning("Out of order stop detected at count: " + this.stopInfos.Count);
+			}
+			else {
+				while (this.stopInfos.Count < stopId)
+					this.stopInfos.Add(nullStop);
+
+				this.stopInfos.Add(newStopInfo);
+			}
+		};
+
+		this.ProcessCSVData(this.stopsTextData.text, lineProcessor, 5, dataLoadedCallback);
+
+		#if UNITY_EDITOR
+		for (int i = 0; i < this.stopInfos.Count; i++) {
+			StopInfo stopInfo = this.stopInfos[i];
+
+			if (stopInfo.stopName != null && stopInfo.stopId != i) {
+				Debug.LogWarning("Stop Id doesn't match index at index: " + i + " stopId: " + stopInfo.stopId);
+			}
+		}
+		#endif
+	}
+
+	//
+	// Stop Times
+	//
 
 	//
 	// General Processing

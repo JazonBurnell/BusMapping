@@ -16,6 +16,12 @@ public class AppController : MonoBehaviour {
 		this.busRouteDataController.gtfsDataController.LoadShapesData(delegate() {
 			this.StartCoroutine(this.co_LoadCompletedForGTFSDataShapes());
 		});
+
+//		this.busRouteDataController.gtfsDataController.LoadStopsData(delegate() {
+//			foreach (BusGTFSDataController.StopInfo stopInfo in this.busRouteDataController.gtfsDataController.stopInfos) {
+//				this.mapIndicatorController.AddIndicatorAtLatLong(stopInfo.latlong, 1);
+//			}
+//		});
 	}
 
 	private IEnumerator co_LoadCompletedForGTFSDataShapes() {
