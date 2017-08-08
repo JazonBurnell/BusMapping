@@ -6,7 +6,7 @@ Material:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
-  m_Name: Anchorage02
+  m_Name: Anchorage03
   m_Shader: {fileID: 34, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: _ALPHAPREMULTIPLY_ON _EMISSION
   m_LightmapFlags: 1
@@ -54,7 +54,7 @@ Material:
     - first:
         name: _MainTex
       second:
-        m_Texture: {fileID: 2800000, guid: 2cf90e6406e904de1b6dd0acf1ea7552, type: 3}
+        m_Texture: {fileID: 2800000, guid: b0b38ba754f3a42828c74fc574fb3099, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - first:

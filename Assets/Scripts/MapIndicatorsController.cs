@@ -94,6 +94,8 @@ public class MapIndicatorsController : MonoBehaviour {
 
 			newIndicator.transform.localPosition = localPos;
 			newIndicator.transform.localScale = newIndicator.transform.localScale * scale;
+
+			newIndicator.gameObject.SetActive(true);
 		}
 
 		return localPos;

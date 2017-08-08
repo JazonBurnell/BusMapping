@@ -113,8 +113,8 @@ public class BusGTFSDataController : MonoBehaviour {
 
 			if (!this.stopPointInfosByTripId.ContainsKey(tripId)) {
 
-				if (tripId.Equals("3-1636-I-1a"))
-					Debug.Log("Adding tripId: <" + tripId + ">");
+//				if (tripId.Equals("3-1636-I-1a"))
+//					Debug.Log("Adding tripId: <" + tripId + ">");
 
 				this.stopPointInfosByTripId.Add(tripId, new List<StopPointInfo>(100));
 			}

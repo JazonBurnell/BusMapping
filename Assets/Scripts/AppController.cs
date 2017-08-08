@@ -88,20 +88,26 @@ public class AppController : MonoBehaviour {
 
 		List<Vector3> linePathPoints = new List<Vector3>(latLongCount);
 
+		LineRenderer newLineRenderer = Instantiate<LineRenderer>(this.lineRenderer);
+		newLineRenderer.transform.parent = this.lineRenderer.transform.parent;
+		newLineRenderer.transform.localPosition = this.lineRenderer.transform.localPosition;
+
 		foreach (LatitudeLongitude latLong in this.busRouteDataController.gtfsDataController.shapesLatLongsByRouteStringId[routeStringId]) {
 			Vector3 addedPos = this.mapIndicatorController.AddIndicatorAtLatLong(latLong, 0);
 
 			linePathPoints.Add(addedPos);
 
-			this.lineRenderer.numPositions = linePathPoints.Count;
-			this.lineRenderer.SetPositions(linePathPoints.ToArray());
+			newLineRenderer.numPositions = linePathPoints.Count;
+			newLineRenderer.SetPositions(linePathPoints.ToArray());
 
 			if (overTime)
 				yield return null;
 		}
 
-		this.lineRenderer.numPositions = linePathPoints.Count;
-		this.lineRenderer.SetPositions(linePathPoints.ToArray());
+		newLineRenderer.numPositions = linePathPoints.Count;
+		newLineRenderer.SetPositions(linePathPoints.ToArray());
+
+		newLineRenderer.gameObject.SetActive(true);
 
 		yield return null;
 	}
