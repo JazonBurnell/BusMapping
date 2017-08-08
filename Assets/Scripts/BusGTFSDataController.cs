@@ -92,7 +92,7 @@ public class BusGTFSDataController : MonoBehaviour {
 	// Stop Times
 	//
 
-	public TextAsset stopTimesTextData;
+	public TextAsset stopTimesTextData; // stop_times.txt
 
 	public struct StopPointInfo {
 		public string arrivalTimeString;
@@ -133,17 +133,63 @@ public class BusGTFSDataController : MonoBehaviour {
 
 		this.ProcessCSVData(this.stopTimesTextData.text, lineProcessor, 7, dataLoadedCallback);
 
+		foreach (KeyValuePair<string, List<StopPointInfo>> pair in this.stopPointInfosByTripId) {
+			List<StopPointInfo> stopPoints = pair.Value;
+
+			for (int i = 0; i < stopPoints.Count; i++) {
+				bool keepLooking = true;
+				int sequentialSameArrivalTimeTops = 0;
+				int safteyCount = 0;
+
+				while (keepLooking && (i+sequentialSameArrivalTimeTops+1 < stopPoints.Count) && safteyCount <= 10) {
+					if (Mathf.Approximately(stopPoints[i+sequentialSameArrivalTimeTops].arrivalSecondsIntoTheDay, stopPoints[i+sequentialSameArrivalTimeTops+1].arrivalSecondsIntoTheDay)) {
+						sequentialSameArrivalTimeTops++;
+					}
+					else {
+						keepLooking = false;
+					}
+
+					safteyCount++;
+				}
+
+				if (safteyCount >= 10) 
+					Debug.LogWarning("SafteyCount hit on tripId: " + tripInfosByRouteId + " index: " + i);
+
+				if (sequentialSameArrivalTimeTops > 0) {
+					for (int k = 1; k <= sequentialSameArrivalTimeTops; k++) {
+						StopPointInfo stopPoint = stopPoints[i+k];
+						stopPoint.arrivalSecondsIntoTheDay = stopPoint.arrivalSecondsIntoTheDay + (k * (60f / (sequentialSameArrivalTimeTops + 1)));
+						stopPoints[i+k] = stopPoint;
+					}
+				}
+			}
+		}
+
 		#if UNITY_EDITOR
-		// Verify sequence id order?
+		foreach (KeyValuePair<string, List<StopPointInfo>> pair in this.stopPointInfosByTripId) {
+			for (int i = 0; i < pair.Value.Count; i++) {
+				StopPointInfo stopPoint = pair.Value[i];
+
+				if (stopPoint.sequence != (i + 1)) {
+					Debug.LogWarning("StopPoint out of sequence in tripId: " + pair.Key + " at index: " + (i+1) + " sequence: " + stopPoint.sequence);
+				}
+
+				if (i < (pair.Value.Count - 1)) {
+					if ((pair.Value[i+1].arrivalSecondsIntoTheDay - pair.Value[i].arrivalSecondsIntoTheDay) < 1) { // e.g. 3060 - 3000 = 60
+						Debug.LogWarning("Found very short arrival time difference on tripId: " + pair.Key + " sequence: " + stopPoint.sequence);
+					}
+				}
+			}
+		}
 		#endif
 	}
 
 	public static float SecondsIntoDayForTimeString(string timeStringAsHHcMMcSS) {
 		if (timeStringAsHHcMMcSS.Length == 8) {
 			return 
-				(int.Parse(timeStringAsHHcMMcSS.Substring(0, 2)) * 60) +  // Hours
-				(int.Parse(timeStringAsHHcMMcSS.Substring(3, 2))) + // Minutes
-				(int.Parse(timeStringAsHHcMMcSS.Substring(6, 2)) / 100f); // Seconds
+				(int.Parse(timeStringAsHHcMMcSS.Substring(0, 2)) * 3600) +  // Hours
+				(int.Parse(timeStringAsHHcMMcSS.Substring(3, 2)) * 60) + // Minutes
+				(int.Parse(timeStringAsHHcMMcSS.Substring(6, 2))); // Seconds
 		}
 		else {
 			Debug.LogWarning("Couldn't parse time: " + timeStringAsHHcMMcSS + ", must be in format HH:MM:ss");
@@ -212,6 +258,67 @@ public class BusGTFSDataController : MonoBehaviour {
 	}
 
 	//
+	// Routes
+	//
+
+	public TextAsset routeTextData;
+
+	public struct RouteInfo {
+		/*
+		route_id,	agency_id,					route_short_name,	route_long_name,	route_desc,				route_type,		route_url,																	route_color,	route_text_color
+		1,			Anchorage People Mover,		1,					CROSSTOWN,			"Route 1 trav[...]",	3,				http://www.muni.org/departments/transit/peoplemover/Pages/route1.aspx,		DB4040,			FFFFFF
+		*/
+
+		public string routeId;
+		public string agencyId;
+		public string routeShortName;
+		public string routeLongName;
+		public string routeDescription;
+		public int routeType;
+		public string routeURL;
+		public Color routeColor;
+		public Color routeTextColor;
+	}
+
+	public Dictionary<string, RouteInfo> routeInfosByRouteId = new Dictionary<string, RouteInfo>();
+
+	public void LoadRouteData(System.Action dataLoadedCallback) {
+		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+			RouteInfo newRouteInfo = new RouteInfo();
+
+			newRouteInfo.routeId = lineComponents[0];
+			newRouteInfo.agencyId = lineComponents[1];
+			newRouteInfo.routeShortName = lineComponents[2];
+			newRouteInfo.routeLongName = lineComponents[3];
+			newRouteInfo.routeDescription = lineComponents[4];
+			newRouteInfo.routeType = int.Parse(lineComponents[5]);
+			newRouteInfo.routeURL = lineComponents[6];
+			newRouteInfo.routeColor = ColorForHexString(lineComponents[7]);
+			newRouteInfo.routeTextColor = ColorForHexString(lineComponents[8]);
+
+			this.routeInfosByRouteId.Add(newRouteInfo.routeId, newRouteInfo);
+		};
+
+		this.ProcessCSVData(this.routeTextData.text, lineProcessor, 9, dataLoadedCallback);
+
+		#if UNITY_EDITOR
+		#endif
+	}
+
+	public static Color ColorForHexString(string hexString) {
+		if (hexString.Length < 6)
+			return Color.white;
+
+		Color c;
+
+		if (!ColorUtility.TryParseHtmlString("#" + hexString, out c)) {
+			Debug.LogWarning("Couldn't parse hexString: " + hexString);
+		}
+
+		return c;
+	}
+
+	//
 	// General Processing
 	//
 
@@ -219,7 +326,16 @@ public class BusGTFSDataController : MonoBehaviour {
 		string[] csvTextLines = csvText.Split(new string[]{"\n"}, System.StringSplitOptions.None);
 
 		for (int i = 1; i < csvTextLines.Length; i++) {
-			string[] lineComponents = csvTextLines[i].Split(new string[]{","}, System.StringSplitOptions.None);
+			string csvLine = csvTextLines[i];
+
+			if (csvLine.Contains("\"")) {
+				int firstDoubleQuote = csvLine.IndexOf("\"");
+				int lastDoubleQuote = csvLine.LastIndexOf("\"");
+
+				csvLine = csvLine.Replace(csvLine.Substring(firstDoubleQuote, (lastDoubleQuote - firstDoubleQuote) + 1), "[Unparsed Double Quote Section]");
+			}
+
+			string[] lineComponents = csvLine.Split(new string[]{","}, System.StringSplitOptions.None);
 
 			lineComponents[lineComponents.Length-1] = lineComponents[lineComponents.Length-1].Trim(); // Last entry has lingering line break at end for some reason... 
 

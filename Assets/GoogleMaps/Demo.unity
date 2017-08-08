@@ -178,7 +178,7 @@ Transform:
   - {fileID: 1034887247}
   - {fileID: 961533251}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &25513113
 MonoBehaviour:
@@ -203,88 +203,6 @@ MonoBehaviour:
   doubleResolution: 1
   markers: []
   paths: []
---- !u!1 &832576258
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 832576259}
-  - component: {fileID: 832576260}
-  - component: {fileID: 832576261}
-  - component: {fileID: 832576262}
-  m_Layer: 0
-  m_Name: App Controller
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &832576259
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 832576258}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -9.69}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &832576260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 832576258}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7b92732585ed469e9b01f79fb537531, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mapIndicatorController: {fileID: 25513110}
-  busRouteDataController: {fileID: 832576261}
-  lineRenderer: {fileID: 961533252}
---- !u!114 &832576261
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 832576258}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54da9e842664e495aae50a111eed0788, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gtfsDataController: {fileID: 832576262}
-  usePredownloadedFiles: 1
-  predownloadedDataSet:
-    stopDepartures: []
-    publicMessages: []
-    stops:
-    - {fileID: 4900000, guid: d310a26c162954bd09b02fc3e82e77ad, type: 3}
-    routeStops:
-    - {fileID: 4900000, guid: 729fe8acd9389423ab1eb9c05aed8d02, type: 3}
-    routes: []
-    vehicleLocation: []
---- !u!114 &832576262
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 832576258}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9dcd77cabaf7469e99ce0d967e40db5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shapesTextData: {fileID: 4900000, guid: 34a0bab6b92f74ca89723afd2b23b940, type: 3}
-  stopsTextData: {fileID: 4900000, guid: f608bc9e6eec94658b0b7bad6192c6c0, type: 3}
-  stopTimesTextData: {fileID: 4900000, guid: fdc1372044b7c461f982e23c8ad62d80, type: 3}
-  tripsTextData: {fileID: 4900000, guid: b8f6a33a02a0044b0ac51d1c16ba1a18, type: 3}
 --- !u!1 &961533250
 GameObject:
   m_ObjectHideFlags: 0
@@ -523,7 +441,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &1519147947
 Camera:

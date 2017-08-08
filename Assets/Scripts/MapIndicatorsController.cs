@@ -14,8 +14,8 @@ public struct LatitudeLongitude {
 
 	public static LatitudeLongitude Lerp(LatitudeLongitude valueA, LatitudeLongitude valueB, double percentage) {
 		return new LatitudeLongitude(
-			(valueA.latitude * (1.0 - percentage)) + (valueA.latitude * percentage),
-			(valueB.longitude * (1.0 - percentage)) + (valueB.longitude * percentage)
+			(valueA.latitude * (1.0 - percentage)) + (valueB.latitude * percentage),
+			(valueA.longitude * (1.0 - percentage)) + (valueB.longitude * percentage)
 		);
 	}
 
@@ -46,6 +46,12 @@ public class MapIndicatorsController : MonoBehaviour {
 
 	public double scalar1 = 5.69;
 	public double scalar2 = 11.79;
+
+	public static MapIndicatorsController instance;
+
+	void Awake () {
+		instance = this;
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -101,6 +107,12 @@ public class MapIndicatorsController : MonoBehaviour {
 		return localPos;
 
 //		return newIndicator;
+	}
+
+	public Vector2 MapUnitScalarPositionForLatLong(LatitudeLongitude latLong) {
+		LatitudeLongitude relativeLatLongDelta = latLong - this.centerPosition;
+
+		return new Vector2((float)(relativeLatLongDelta.longitude * this.scalar1), ((float)(relativeLatLongDelta.latitude * this.scalar2)));
 	}
 }
 
