@@ -12,6 +12,13 @@ public struct LatitudeLongitude {
 		this.longitude = longIn;
 	}
 
+	public static LatitudeLongitude Lerp(LatitudeLongitude valueA, LatitudeLongitude valueB, double percentage) {
+		return new LatitudeLongitude(
+			(valueA.latitude * (1.0 - percentage)) + (valueA.latitude * percentage),
+			(valueB.longitude * (1.0 - percentage)) + (valueB.longitude * percentage)
+		);
+	}
+
 	public static LatitudeLongitude operator +(LatitudeLongitude left, LatitudeLongitude right)
 	{
 		left.latitude += right.latitude;

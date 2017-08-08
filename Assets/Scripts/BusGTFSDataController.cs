@@ -64,11 +64,11 @@ public class BusGTFSDataController : MonoBehaviour {
 			newStopInfo.stopId = stopId;
 			newStopInfo.stopName = lineComponents[4];
 
-			if (this.stopInfos.Count >= stopId) {
-				Debug.LogWarning("Out of order stop detected at count: " + this.stopInfos.Count);
+			if (this.stopInfos.Count > stopId) {
+				Debug.LogWarning("Out of order stop detected at count: " + this.stopInfos.Count + " stopId: " + stopId);
 			}
 			else {
-				while (this.stopInfos.Count < (stopId - 1))
+				while (this.stopInfos.Count < (stopId))
 					this.stopInfos.Add(nullStop);
 
 				this.stopInfos.Add(newStopInfo);
@@ -102,7 +102,7 @@ public class BusGTFSDataController : MonoBehaviour {
 		public int sequence;
 
 		// Processed
-//		public float arrivalTimeSeconds;
+		public float arrivalSecondsIntoTheDay; // seconds past midnight
 	}
 
 	public Dictionary<string, List<StopPointInfo>> stopPointInfosByTripId = new Dictionary<string, List<StopPointInfo>>();
@@ -112,6 +112,10 @@ public class BusGTFSDataController : MonoBehaviour {
 			string tripId = lineComponents[0];
 
 			if (!this.stopPointInfosByTripId.ContainsKey(tripId)) {
+
+				if (tripId.Equals("3-1636-I-1a"))
+					Debug.Log("Adding tripId: <" + tripId + ">");
+
 				this.stopPointInfosByTripId.Add(tripId, new List<StopPointInfo>(100));
 			}
 
@@ -121,6 +125,8 @@ public class BusGTFSDataController : MonoBehaviour {
 			newStopPoint.departureTimeString = lineComponents[2];
 			newStopPoint.stopId = int.Parse(lineComponents[3]);
 			newStopPoint.sequence = int.Parse(lineComponents[4]);
+
+			newStopPoint.arrivalSecondsIntoTheDay = SecondsIntoDayForTimeString(newStopPoint.arrivalTimeString);
 
 			this.stopPointInfosByTripId[tripId].Add(newStopPoint);
 		};
@@ -132,11 +138,78 @@ public class BusGTFSDataController : MonoBehaviour {
 		#endif
 	}
 
+	public static float SecondsIntoDayForTimeString(string timeStringAsHHcMMcSS) {
+		if (timeStringAsHHcMMcSS.Length == 8) {
+			return 
+				(int.Parse(timeStringAsHHcMMcSS.Substring(0, 2)) * 60) +  // Hours
+				(int.Parse(timeStringAsHHcMMcSS.Substring(3, 2))) + // Minutes
+				(int.Parse(timeStringAsHHcMMcSS.Substring(6, 2)) / 100f); // Seconds
+		}
+		else {
+			Debug.LogWarning("Couldn't parse time: " + timeStringAsHHcMMcSS + ", must be in format HH:MM:ss");
+			return 0;
+		}
+	}
+
 	//
 	// Trips
 	//
 
+	public TextAsset tripsTextData;
 
+	public struct TripInfo {
+		/*
+		 	bikes_allowed,	route_id,		wheelchair_accessible,	direction_id,	trip_headsign,				service_id,		shape_id,				trip_id
+			1,				13,				1,						0,				Senior Center/Muldoon,		92,				13_OB,					13-1420-O-92
+			2,				ERC,			1,						1,				Muldoon Transfer Center,	1a,				ERC_IB_to_MULDOON,		ERC-800-I-1a
+		*/
+
+		public int bikesAllowed;
+		public string routeId;
+		public int wheelchairAccessible;
+		public int directionId;
+		public string tripHeadSign;
+		public string serviceId;
+		public string shapeId;
+		public string tripId;
+	}
+
+	public Dictionary<string, List<TripInfo>> tripInfosByRouteId = new Dictionary<string, List<TripInfo>>();
+
+	public void LoadTripInfoData(System.Action dataLoadedCallback) {
+		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+			#if UNITY_EDITOR
+			try 
+			#endif
+			{
+//				int routeId = int.Parse(lineComponents[1]);
+				string routeId = lineComponents[1];
+
+				if (!this.tripInfosByRouteId.ContainsKey(routeId)) {
+					this.tripInfosByRouteId.Add(routeId, new List<TripInfo>(150));
+				}
+
+				TripInfo newTripInfo = new TripInfo();
+				newTripInfo.bikesAllowed = int.Parse(lineComponents[0]);
+				newTripInfo.routeId = routeId;
+				newTripInfo.wheelchairAccessible = int.Parse(lineComponents[2]);
+				newTripInfo.directionId = int.Parse(lineComponents[3]);
+				newTripInfo.tripHeadSign = lineComponents[4];
+				newTripInfo.serviceId = lineComponents[5];
+				newTripInfo.shapeId = lineComponents[6];
+				newTripInfo.tripId = lineComponents[7];
+
+				this.tripInfosByRouteId[routeId].Add(newTripInfo);
+			}
+			#if UNITY_EDITOR
+			catch (System.Exception e) {
+				Debug.LogError("Encoutnered error: " + e.ToString() + " on tripId: " + lineComponents[7]);
+			}
+			#endif
+		};
+
+		this.ProcessCSVData(this.tripsTextData.text, lineProcessor, 8, dataLoadedCallback);
+	}
 
 	//
 	// General Processing
@@ -147,6 +220,8 @@ public class BusGTFSDataController : MonoBehaviour {
 
 		for (int i = 1; i < csvTextLines.Length; i++) {
 			string[] lineComponents = csvTextLines[i].Split(new string[]{","}, System.StringSplitOptions.None);
+
+			lineComponents[lineComponents.Length-1] = lineComponents[lineComponents.Length-1].Trim(); // Last entry has lingering line break at end for some reason... 
 
 			if (lineComponents.Length == expectedNumberOfColumns) {
 				processLineCallback(lineComponents);
