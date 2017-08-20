@@ -87,9 +87,15 @@ public class AppController : MonoBehaviour {
 			currentSecondsIntoDay = this.timeOverride + Time.time + this.timeOffset;
 		}
 
+		float totalSecondsFromStartOfToday = currentSecondsIntoDay;
+
+		while (currentSecondsIntoDay > 86400) {
+			currentSecondsIntoDay -= 86400;
+		}
+
 		this.currentTime = currentSecondsIntoDay;
 
-		this.overlayUIController.SetCurrentTime(startOfDayDateTime.AddSeconds(currentSecondsIntoDay));
+		this.overlayUIController.SetCurrentTime(startOfDayDateTime.AddSeconds(totalSecondsFromStartOfToday));
 
 		foreach (KeyValuePair<string, List<BusGTFSDataController.TripInfo>> routeTripInfosPair in this.busRouteDataController.gtfsDataController.tripInfosByRouteId) {
 
