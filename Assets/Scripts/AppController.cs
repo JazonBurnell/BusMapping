@@ -95,7 +95,7 @@ public class AppController : MonoBehaviour {
 
 		this.currentTime = currentSecondsIntoDay;
 
-		this.overlayUIController.SetCurrentTime(startOfDayDateTime.AddSeconds(totalSecondsFromStartOfToday));
+		this.overlayUIController.timelineBarUIController.SetCurrentTime(startOfDayDateTime.AddSeconds(totalSecondsFromStartOfToday));
 
 		foreach (KeyValuePair<string, List<BusGTFSDataController.TripInfo>> routeTripInfosPair in this.busRouteDataController.gtfsDataController.tripInfosByRouteId) {
 
