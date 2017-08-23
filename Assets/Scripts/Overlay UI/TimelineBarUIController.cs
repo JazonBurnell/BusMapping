@@ -11,8 +11,13 @@ public class TimelineBarUIController : MonoBehaviour {
 	public Image timeBarTickMarkTemplate;
 	private List<Image> timeBarTickMarks = new List<Image>();
 
+
+
 	void Start () {		
 		this.timelineScrollRect.vertical = false;
+
+//		this.timelineScrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+//		this.timelineScrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 
 		for (int i = 0; i < 100; i++) {
 			Image newTickMark = Instantiate<Image>(this.timeBarTickMarkTemplate);

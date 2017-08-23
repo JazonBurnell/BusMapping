@@ -87,6 +87,8 @@ public class AppController : MonoBehaviour {
 			currentSecondsIntoDay = this.timeOverride + Time.time + this.timeOffset;
 		}
 
+		currentSecondsIntoDay += (this.overlayUIController.timelineBarUIController.timelineScrollRect.normalizedPosition.x * 2500000);
+
 		float totalSecondsFromStartOfToday = currentSecondsIntoDay;
 
 		while (currentSecondsIntoDay > 86400) {
