@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class TimelineBarUIController : MonoBehaviour {
+	public Canvas canvas;
+
 	public Text currentTimeMainLabel;
 	public Text currentTimeShadowLabel;
 
@@ -11,13 +13,15 @@ public class TimelineBarUIController : MonoBehaviour {
 	public Image timeBarTickMarkTemplate;
 	private List<Image> timeBarTickMarks = new List<Image>();
 
-
-
 	void Start () {		
 		this.timelineScrollRect.vertical = false;
 
 //		this.timelineScrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 //		this.timelineScrollRect.horizontalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
+		float tickSpacing = 40;
+
+
 
 		for (int i = 0; i < 100; i++) {
 			Image newTickMark = Instantiate<Image>(this.timeBarTickMarkTemplate);
@@ -25,15 +29,19 @@ public class TimelineBarUIController : MonoBehaviour {
 			newTickMark.transform.SetParent(this.timeBarTickMarkTemplate.transform.parent, false);
 
 			newTickMark.rectTransform.anchoredPosition = new Vector2(
-				this.timeBarTickMarkTemplate.rectTransform.anchoredPosition.x + (i * 400),
+				-this.timelineScrollRect.content.rect.width/2 + (i * tickSpacing),
 				this.timeBarTickMarkTemplate.rectTransform.anchoredPosition.y
 			);
+
+			this.timeBarTickMarks.Add(newTickMark);
 		}
 
 		this.timeBarTickMarkTemplate.gameObject.SetActive(false);
 	}
 
 	void Update () {
+
+
 //		Debug.Log("scroll x pos: " + this.timelineScrollRect.normalizedPosition.x);
 
 //		if (this.timelineScrollRect.normalizedPosition.x > 0.2f) {
