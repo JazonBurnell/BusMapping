@@ -40,7 +40,12 @@ public class TimelineBarUIController : MonoBehaviour {
 	}
 
 	void Update () {
-
+		if (Time.frameCount % 30 == 0) {
+			if (this.timeBarTickMarks.Count > 0)
+//				Debug.Log("First image pos: " + (this.timeBarTickMarks[0].GetComponent<RectTransform>().anchoredPosition.x + this.timelineScrollRect.content.rect.width/2 + this.timelineScrollRect.content.anchoredPosition.x + (Screen.width / this.canvas.GetComponent<CanvasScaler>().scaleFactor)/2));
+				Debug.Log("First image pos: " + (this.timeBarTickMarks[0].GetComponent<RectTransform>().position.x));
+				Debug.Log("Last image pos: " + (this.timeBarTickMarks[this.timeBarTickMarks.Count - 1].GetComponent<RectTransform>().position.x));
+		}
 
 //		Debug.Log("scroll x pos: " + this.timelineScrollRect.normalizedPosition.x);
 
