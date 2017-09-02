@@ -73,6 +73,8 @@ public class AppController : MonoBehaviour {
 		}
 	}
 
+	private float playSpeedTimeOffset = 0;
+
 	private void UpdateBusPositions() {
 //		float fractionalSecond = 0;// (float) (System.DateTime.Now - new System.DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day, System.DateTime.Now.Hour, System.DateTime.Now.Minute, System.DateTime.Now.Second)).TotalSeconds;
 //
@@ -87,7 +89,9 @@ public class AppController : MonoBehaviour {
 			currentSecondsIntoDay = this.timeOverride + Time.time + this.timeOffset;
 		}
 
-		currentSecondsIntoDay += (this.overlayUIController.timelineBarUIController.timelineScrollRect.normalizedPosition.x * 2500000);
+		this.playSpeedTimeOffset += ((this.overlayUIController.timelineBarUIController.playSpeedScalar - 1) * Time.deltaTime);
+
+		currentSecondsIntoDay += (this.overlayUIController.timelineBarUIController.timelineScrollRect.normalizedPosition.x * 2500000) + this.playSpeedTimeOffset;
 
 		float totalSecondsFromStartOfToday = currentSecondsIntoDay;
 
