@@ -15,6 +15,9 @@ public class TimelineBarUIController : MonoBehaviour {
 
 	private float tickMarkBaseXPos;
 
+	public RectTransform forwardForwardUIPanel;
+	private List<Button> fastForwardSubButtons = new List<Button>();
+
 	public float playSpeedScalar = 10f;
 
 	void Start () {		
@@ -169,5 +172,17 @@ public class TimelineBarUIController : MonoBehaviour {
 		this.currentTimeMainLabel.text = this.currentTimeShadowLabel.text = dateTimeString;
 
 		this.currentTimeMainLabel.transform.parent.SetAsLastSibling();
+	}
+
+	//
+	// UI stuff
+	//
+
+	public void PressedFastFowardButton(Button button) {
+
+	}
+
+	public void PressedFastForwardMenuSubButton(Button button) {
+
 	}
 }
