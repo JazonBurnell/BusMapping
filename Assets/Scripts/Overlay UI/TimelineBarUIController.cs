@@ -15,10 +15,10 @@ public class TimelineBarUIController : MonoBehaviour {
 
 	private float tickMarkBaseXPos;
 
-	public RectTransform forwardForwardUIPanel;
+	public RectTransform fastForwardUIPanel;
 	private List<Button> fastForwardSubButtons = new List<Button>();
 
-	public float playSpeedScalar = 10f;
+	public float playSpeedScalar = 1f;
 
 	void Start () {		
 		this.timelineScrollRect.vertical = false;
@@ -28,7 +28,11 @@ public class TimelineBarUIController : MonoBehaviour {
 
 		this.timeBarTickMarkTemplate.gameObject.SetActive(false);
 
+		this.fastForwardUIPanel.gameObject.SetActive(false);
+
 		this.UpdateTickMarks();
+
+		this.fastForwardSubButtons = new List<Button>(this.fastForwardUIPanel.GetComponentsInChildren<Button>());
 	}
 
 	private void UpdateTickMarks() {
@@ -167,22 +171,110 @@ public class TimelineBarUIController : MonoBehaviour {
 	}
 
 	public void SetCurrentTime(System.DateTime dateTime) {
-		string dateTimeString = dateTime.ToString("F");
+//		string dateTimeString = dateTime.ToString("F"); // Sunday, 03 September 2017 14:25:15
+
+
+		#warning Make seconds smaller?
+		string dateTimeString = dateTime.ToString("dddd, MMMM ") + this.AddOrdinal(dateTime.Day) + dateTime.ToString("  h:mm:ss ") + dateTime.ToString("tt").ToLower();
 
 		this.currentTimeMainLabel.text = this.currentTimeShadowLabel.text = dateTimeString;
 
 		this.currentTimeMainLabel.transform.parent.SetAsLastSibling();
 	}
 
+	// https://stackoverflow.com/questions/20156/is-there-an-easy-way-to-create-ordinals-in-c/20166#20166
+	public string AddOrdinal(int num) {
+		if( num <= 0 ) return num.ToString();
+
+		switch(num % 100)
+		{
+		case 11:
+		case 12:
+		case 13:
+			return num + "th";
+		}
+
+		switch(num % 10)
+		{
+		case 1:
+			return num + "st";
+		case 2:
+			return num + "nd";
+		case 3:
+			return num + "rd";
+		default:
+			return num + "th";
+		}
+	}
+		
 	//
 	// UI stuff
 	//
 
-	public void PressedFastFowardButton(Button button) {
+	private Button activeFastForwardButton;
 
+	public void PressedFastFowardButton(Button button) {
+		this.fastForwardUIPanel.gameObject.SetActive(!this.fastForwardUIPanel.gameObject.activeSelf);
 	}
 
 	public void PressedFastForwardMenuSubButton(Button button) {
+		if (this.activeFastForwardButton == button) {
+			this.playSpeedScalar = 1;
+			this.activeFastForwardButton = null;
 
+			this.ShowButtonAsActivated(button, false);
+
+			this.StartCoroutine(this.co_HideFastForwardMenu(0.3f));
+
+			return;
+		}
+
+		Text buttonLabel = button.GetComponentInChildren<Text>();
+
+		if (buttonLabel == null) {
+			Debug.LogWarning("No text label found in button");
+			return;
+		}
+
+		if (buttonLabel.text.Substring(0,buttonLabel.text.Length - 2).Contains("Fast Forward ")) {
+			int parsedValue;
+			if (int.TryParse(buttonLabel.text.Replace("Fast Forward ", "").Replace("x", ""), out parsedValue)) {
+				this.playSpeedScalar = parsedValue;
+			}
+		}
+		else {
+			Debug.LogWarning("Was expecting button text to contain string Fast Forward");
+			return;
+		}
+
+		if (this.activeFastForwardButton != null) {
+			this.ShowButtonAsActivated(this.activeFastForwardButton, false);
+		}
+
+		this.activeFastForwardButton = button;
+
+		this.ShowButtonAsActivated(button, true);
+
+		this.StartCoroutine(this.co_HideFastForwardMenu(0.3f));
+	}
+
+	private void ShowButtonAsActivated(Button button, bool activated) {
+		Text buttonLabel = button.GetComponentInChildren<Text>();
+
+		if (buttonLabel == null) {
+			Debug.LogWarning("No text label found in button");
+			return;
+		}
+
+		button.GetComponent<Image>().color = (activated) ? new Color(1, 1, 1, 0.5f) : new Color(1, 1, 1, 1f);
+
+		buttonLabel.fontStyle = (activated) ? FontStyle.Bold : FontStyle.Normal;
+		buttonLabel.fontSize = (activated) ? 23 : 22;
+	}
+
+	private IEnumerator co_HideFastForwardMenu(float delay) {
+		yield return new WaitForSeconds(delay);
+
+		this.fastForwardUIPanel.gameObject.SetActive(false);
 	}
 }

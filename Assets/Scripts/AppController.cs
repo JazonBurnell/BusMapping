@@ -98,10 +98,15 @@ public class AppController : MonoBehaviour {
 		while (currentSecondsIntoDay > 86400) {
 			currentSecondsIntoDay -= 86400;
 		}
+		while (currentSecondsIntoDay < 0) {
+			currentSecondsIntoDay += 86400;
+		}
 
 		this.currentTime = currentSecondsIntoDay;
 
-		this.overlayUIController.timelineBarUIController.SetCurrentTime(startOfDayDateTime.AddSeconds(totalSecondsFromStartOfToday));
+		System.DateTime currentDateTime = startOfDayDateTime.AddSeconds(totalSecondsFromStartOfToday);
+
+		this.overlayUIController.timelineBarUIController.SetCurrentTime(currentDateTime);
 
 		foreach (KeyValuePair<string, List<BusGTFSDataController.TripInfo>> routeTripInfosPair in this.busRouteDataController.gtfsDataController.tripInfosByRouteId) {
 
@@ -114,6 +119,7 @@ public class AppController : MonoBehaviour {
 					string tripId = tripInfo.tripId;
 
 //					if (tripId.Equals("3-1209-O-92")) // at time 44697 (debug point for sequential same arrival times
+					#warning !!!!
 					if (tripId.Contains("-1a")) // is Mon - Fri
 					{
 						if (this.busRouteDataController.gtfsDataController.stopPointInfosByTripId.ContainsKey(tripId)) {								

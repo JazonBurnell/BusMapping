@@ -319,6 +319,56 @@ public class BusGTFSDataController : MonoBehaviour {
 	}
 
 	//
+	// Calendar
+	//
+
+	public TextAsset calendarTextData;
+
+	public struct CalendarInfo {
+		/*
+service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+3a,0,0,0,0,0,0,1,20160801,20180604
+1a,1,1,1,1,1,0,0,20160801,20180604
+2a,0,0,0,0,0,1,0,20160801,20180604
+92,0,0,0,0,0,0,0,20160801,20180604
+		*/
+		public string serviceId;
+		public int days;
+		public int startDate;
+		public int endDate;
+	}
+
+	public Dictionary<string, CalendarInfo> calendarInfoByServiceId = new Dictionary<string, CalendarInfo>();
+
+	public void LoadCalendarData(System.Action dataLoadedCallback) {
+		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+			CalendarInfo newCalendarInfo = new CalendarInfo();
+
+			string serviceId = lineComponents[0];
+
+			int[] daysArray = new int[7];
+
+			for (int i = 0; i < 7; i++) {
+				daysArray[i] = int.Parse(lineComponents[i+1]);
+			}
+
+			newCalendarInfo.serviceId = serviceId;
+			newCalendarInfo.startDate = int.Parse(lineComponents[8]);
+			newCalendarInfo.endDate = int.Parse(lineComponents[9]);
+
+			this.calendarInfoByServiceId.Add(serviceId, newCalendarInfo);
+		};
+
+		this.ProcessCSVData(this.calendarTextData.text, lineProcessor, 10, dataLoadedCallback);
+	}		
+
+//	public bool TripIdIsActiveForDayOfWeek(string tripId, int dayOfWeek) {
+//		foreach (KeyValuePair<string, CalendarInfo> pair in this.calendarInfoByServiceId) {
+//
+//		}
+//	}
+
+	//
 	// General Processing
 	//
 
