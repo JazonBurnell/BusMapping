@@ -20,7 +20,7 @@ public class BusMapUIController : MonoBehaviour {
 			return busIcon;
 		}
 		else {
-			Debug.Log("Creating bus icon for id: " + idString);
+//			Debug.Log("Creating bus icon for id: " + idString);
 
 			BusIconController newBusIcon = this.NewBusIndicatorIcon(idString, routeInfo);
 

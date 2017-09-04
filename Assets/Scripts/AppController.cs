@@ -28,6 +28,9 @@ public class AppController : MonoBehaviour {
 //		this.visiblePathsByShapeId.Add("3C_OB_CNT");
 //		this.visiblePathsByShapeId.Add("3C_IB");
 
+		this.busRouteDataController.gtfsDataController.LoadCalendarData(delegate() {
+		});
+
 		this.busRouteDataController.gtfsDataController.LoadRouteData(delegate() { 
 		});
 
@@ -120,7 +123,8 @@ public class AppController : MonoBehaviour {
 
 //					if (tripId.Equals("3-1209-O-92")) // at time 44697 (debug point for sequential same arrival times
 					#warning !!!!
-					if (tripId.Contains("-1a")) // is Mon - Fri
+//					if (tripId.Contains("-1a")) // is Mon - Fri
+					if (this.busRouteDataController.gtfsDataController.TripIdIsActiveForDayOfWeek(tripId, currentDateTime.DayOfWeek))
 					{
 						if (this.busRouteDataController.gtfsDataController.stopPointInfosByTripId.ContainsKey(tripId)) {								
 							List<BusGTFSDataController.StopPointInfo> routeStopInfos = this.busRouteDataController.gtfsDataController.stopPointInfosByTripId[tripId];

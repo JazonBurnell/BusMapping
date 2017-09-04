@@ -333,7 +333,7 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 92,0,0,0,0,0,0,0,20160801,20180604
 		*/
 		public string serviceId;
-		public int days;
+		public int[] days;
 		public int startDate;
 		public int endDate;
 	}
@@ -353,6 +353,7 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 			}
 
 			newCalendarInfo.serviceId = serviceId;
+			newCalendarInfo.days = daysArray;
 			newCalendarInfo.startDate = int.Parse(lineComponents[8]);
 			newCalendarInfo.endDate = int.Parse(lineComponents[9]);
 
@@ -362,11 +363,26 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 		this.ProcessCSVData(this.calendarTextData.text, lineProcessor, 10, dataLoadedCallback);
 	}		
 
-//	public bool TripIdIsActiveForDayOfWeek(string tripId, int dayOfWeek) {
-//		foreach (KeyValuePair<string, CalendarInfo> pair in this.calendarInfoByServiceId) {
-//
-//		}
-//	}
+	public bool TripIdIsActiveForDayOfWeek(string tripId, System.DayOfWeek dayOfWeek) {
+
+		// System.DayOfWeek.Sunday = 0, System.DayOfWeek.Monday = 1, etc
+		int calendarInfoDayIndex = (dayOfWeek == System.DayOfWeek.Sunday) ? 6 : ((int)(dayOfWeek)-1);
+
+		foreach (KeyValuePair<string, CalendarInfo> pair in this.calendarInfoByServiceId) {
+			string serviceId = pair.Key;
+
+			if (tripId.Length >= serviceId.Length && tripId.Substring(tripId.Length - serviceId.Length, serviceId.Length).Equals(serviceId)) {
+				if (pair.Value.days[calendarInfoDayIndex] > 0) {
+//					if (Time.frameCount % 30 == 0)
+//						Debug.Log("Hit on service id: " + serviceId + " tripId: " + tripId + " dayOfWeek: " + (int)dayOfWeek);
+
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 
 	//
 	// General Processing

@@ -173,37 +173,35 @@ public class TimelineBarUIController : MonoBehaviour {
 	public void SetCurrentTime(System.DateTime dateTime) {
 //		string dateTimeString = dateTime.ToString("F"); // Sunday, 03 September 2017 14:25:15
 
-
-		#warning Make seconds smaller?
 		string dateTimeString = dateTime.ToString("dddd, MMMM ") + this.AddOrdinal(dateTime.Day) + dateTime.ToString("  h:mm:ss ") + dateTime.ToString("tt").ToLower();
+
+		dateTimeString = dateTimeString.Insert(dateTimeString.Length - 6, "<size=" + (this.currentTimeMainLabel.fontSize - 6) + ">") + "</size>";
+		dateTimeString = dateTimeString.Insert(dateTimeString.Length - (3 + "</size>".Length), "</size><size=" + (this.currentTimeMainLabel.fontSize - 6) + ">");
 
 		this.currentTimeMainLabel.text = this.currentTimeShadowLabel.text = dateTimeString;
 
 		this.currentTimeMainLabel.transform.parent.SetAsLastSibling();
 	}
-
-	// https://stackoverflow.com/questions/20156/is-there-an-easy-way-to-create-ordinals-in-c/20166#20166
-	public string AddOrdinal(int num) {
+		
+	public string AddOrdinal(int num) { // https://stackoverflow.com/questions/20156/is-there-an-easy-way-to-create-ordinals-in-c/20166#20166
 		if( num <= 0 ) return num.ToString();
 
-		switch(num % 100)
-		{
-		case 11:
-		case 12:
-		case 13:
+		switch(num % 100) {
+			case 11:
+			case 12:
+			case 13:
 			return num + "th";
 		}
 
-		switch(num % 10)
-		{
-		case 1:
-			return num + "st";
-		case 2:
-			return num + "nd";
-		case 3:
-			return num + "rd";
-		default:
-			return num + "th";
+		switch(num % 10) {
+			case 1:
+				return num + "st";
+			case 2:
+				return num + "nd";
+			case 3:
+				return num + "rd";
+			default:
+				return num + "th";
 		}
 	}
 		
