@@ -58,12 +58,6 @@ public class MapIndicatorsController : MonoBehaviour {
 
 		this.latLong = new LatitudeLongitude(61.223283, -149.974061);
 
-//		LatitudeLongitude relativeLatLongDelta = this.latLong - this.centerPosition;
-//
-//		Vector3 localPos = new Vector3((float)(relativeLatLongDelta.latitude / 0.000131), 0, 0);
-//
-//		this.referenceCube.transform.localPosition = localPos;
-
 		this.AddIndicatorAtLatLong(new LatitudeLongitude(61.223283, -149.974061)); // upper left
 	}
 	
@@ -71,20 +65,7 @@ public class MapIndicatorsController : MonoBehaviour {
 	void Update () {
 		LatitudeLongitude relativeLatLongDelta = this.latLong - this.centerPosition;
 
-//		long centerLatInt = (long) (this.centerPosition.latitude * 10000000);
-//		long centerLongInt = (long) (this.centerPosition.longitude * 10000000);
-//
-//		long targetLatInt = (long) (this.latLong.latitude * 10000000);
-//		long targetLongInt = (long) (this.latLong.longitude * 10000000);
-//
-//		long deltaLatInt = targetLatInt - centerLatInt;
-//		long deltaLongInt = targetLongInt - centerLongInt;
-
-//		Debug.Log("relativeLatLongDelta is: " + deltaLatInt + ", " + deltaLongInt);
-
 		Vector3 localPos = new Vector3((float)(relativeLatLongDelta.longitude * this.scalar1), ((float)(relativeLatLongDelta.latitude * this.scalar2)), 0);
-
-//		Vector3 localPos = new Vector3((float)(deltaLatInt * this.scalar1), ((float)(deltaLongInt * this.scalar2)), 0);
 
 		this.referenceCube.transform.localPosition = localPos;
 	}
@@ -116,35 +97,3 @@ public class MapIndicatorsController : MonoBehaviour {
 	}
 }
 
-
-/*
- * 
-
-
-Center:
-61.180943, -149.886106
-
-
-Left side (mid lake)
-61.180912, -149.974061
-
-
-Right side:
-61.181074, -149.797944
-
-
-Upper center: 
-61.223283, -149.886003
-
-
-
-
-y, x
-
-
-xDif: 0.087955
-
-yDif: 
-
-
-*/

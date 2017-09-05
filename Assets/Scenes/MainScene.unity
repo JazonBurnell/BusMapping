@@ -864,7 +864,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -1021.2295, y: 0.0000124654325}
+  m_AnchoredPosition: {x: -1021.4093, y: 0.0000124654325}
   m_SizeDelta: {x: 10000000, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &381400030
@@ -2203,7 +2203,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2130651808}
   m_HandleRect: {fileID: 2130651807}
   m_Direction: 0
-  m_Value: 0.000000050010208
+  m_Value: 0.000000100020415
   m_Size: 0.00020411763
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -2493,13 +2493,14 @@ GameObject:
   - component: {fileID: 1124136228}
   - component: {fileID: 1124136230}
   - component: {fileID: 1124136229}
+  - component: {fileID: 1124136231}
   m_Layer: 5
-  m_Name: Swipe info (1)
+  m_Name: Drag here tutorial note
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1124136228
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2511,12 +2512,13 @@ RectTransform:
   m_LocalScale: {x: 1.0000015, y: 1.0000015, z: 1.0000015}
   m_Children:
   - {fileID: 1253913659}
+  - {fileID: 2054476636}
   m_Father: {fileID: 1177924398}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -363.00003}
+  m_AnchoredPosition: {x: 0, y: -498}
   m_SizeDelta: {x: 514.76, y: 68.9}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1124136229
@@ -2532,7 +2534,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.797}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2552,6 +2554,17 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1124136227}
+--- !u!225 &1124136231
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1124136227}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
 --- !u!1 &1133874908
 GameObject:
   m_ObjectHideFlags: 0
@@ -2652,7 +2665,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1527171862}
-  - {fileID: 2054476636}
   - {fileID: 1124136228}
   m_Father: {fileID: 1480982901}
   m_RootOrder: 3
@@ -2710,7 +2722,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0.847}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -2729,7 +2741,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Swipe here to scroll time forwards
+  m_Text: Drag here to scroll time forwards
 --- !u!222 &1253913661
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3275,6 +3287,8 @@ MonoBehaviour:
   timelineBarUIController: {fileID: 1456101600}
   mapCamera: {fileID: 1519147947}
   mapMainScrollView: {fileID: 264085332}
+  introTutorialNotes:
+  - {fileID: 1124136231}
 --- !u!114 &1480982903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3452,7 +3466,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1527171862}
   m_Layer: 5
-  m_Name: Tap for fast forward
+  m_Name: Tap for fast forward note
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4341,7 +4355,7 @@ GameObject:
   - component: {fileID: 2054476638}
   - component: {fileID: 2054476637}
   m_Layer: 5
-  m_Name: Image (1)
+  m_Name: Arrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4355,14 +4369,14 @@ RectTransform:
   m_GameObject: {fileID: 2054476635}
   m_LocalRotation: {x: -0, y: -0, z: -0.9999877, w: 0.0049563916}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: -0.25000247, y: 0.25000247, z: 1.0000015}
+  m_LocalScale: {x: -0.25000212, y: 0.25000212, z: 1}
   m_Children: []
-  m_Father: {fileID: 1177924398}
+  m_Father: {fileID: 1124136228}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -179.432}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -5.4000244, y: -450.90002}
+  m_AnchoredPosition: {x: -5.3999224, y: 47.100037}
   m_SizeDelta: {x: 221, y: 256}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2054476637

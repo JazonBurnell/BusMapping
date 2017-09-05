@@ -148,33 +148,9 @@ public class AppController : MonoBehaviour {
 		this.overlayUIController.busMapUIController.DisableAllIndicatorsNotEqualToFrame(Time.frameCount);
 	}
 
-	private static float EaseInOutQuint(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * value * value * value * value * value + start;
-		value -= 2;
-		return end / 2 * (value * value * value * value * value + 2) + start;
-	}
-
 	private static float EaseInOutSine(float start, float end, float value){
 		end -= start;
 		return -end / 2 * (Mathf.Cos(Mathf.PI * value / 1) - 1) + start;
-	}
-
-	private static float EaseInOutQuad(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * value * value + start;
-		value--;
-		return -end / 2 * (value * (value - 2) - 1) + start;
-	}
-
-	private static float EaseInOutCubic(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * value * value * value + start;
-		value -= 2;
-		return end / 2 * (value * value * value + 2) + start;
 	}
 
 	private IEnumerator co_LoadCompletedForGTFSDataShapes(string routeShapeId, bool overTime) {
@@ -226,9 +202,9 @@ public class AppController : MonoBehaviour {
 		yield return null;
 	}
 
-//	private void SetFloatData(float floatVal, System.Action<float> setter) {
-//		setter(floatVal);
-//	}
+	//
+	// XML related
+	//
 
 	private void LoadCompletedForDataType(BusDataType dataType) {
 		this.StartCoroutine(this.co_LoadCompletedForDataType(dataType));

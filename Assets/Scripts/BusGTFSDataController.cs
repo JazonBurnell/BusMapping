@@ -5,7 +5,7 @@ using UnityEngine;
 public class BusGTFSDataController : MonoBehaviour {
 
 	//
-	// General
+	// General Loading
 	//
 
 	public void LoadAllGTFSData(System.Action dataLoadedCallback) {
