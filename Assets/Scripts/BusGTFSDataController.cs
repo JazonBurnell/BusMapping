@@ -3,7 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BusGTFSDataController : MonoBehaviour {
-	
+
+	//
+	// General
+	//
+
+	public void LoadAllGTFSData(System.Action dataLoadedCallback) {
+		this.LoadCalendarData(delegate() {
+			this.LoadRouteData(delegate() { 
+				this.LoadStopsData(delegate() {
+					this.LoadTripStopPointsData(delegate() {
+						//			Debug.Log("Trip stop points loaded!");
+
+						this.LoadTripInfoData(delegate() {
+							//				Debug.Log("Trip infos loaded too!");
+
+							this.LoadShapesData(delegate() {
+
+								dataLoadedCallback();
+
+							});	
+						});
+					});		
+				});
+			});
+		});
+	}
+
 	//
 	// Shapes
 	//

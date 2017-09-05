@@ -16,7 +16,7 @@ public class TimelineBarUIController : MonoBehaviour {
 	private float tickMarkBaseXPos;
 
 	public RectTransform fastForwardUIPanel;
-	private List<Button> fastForwardSubButtons = new List<Button>();
+//	private List<Button> fastForwardSubButtons = new List<Button>();
 
 	public float playSpeedScalar = 1f;
 
@@ -32,26 +32,25 @@ public class TimelineBarUIController : MonoBehaviour {
 
 		this.UpdateTickMarks();
 
-		this.fastForwardSubButtons = new List<Button>(this.fastForwardUIPanel.GetComponentsInChildren<Button>());
+//		this.fastForwardSubButtons = new List<Button>(this.fastForwardUIPanel.GetComponentsInChildren<Button>());
 	}
 
 	private void UpdateTickMarks() {
 		int tickSpacing = 40;
 
-//		float screenRatio = (((float)Screen.width) / Screen.height) / (16f/9);
+		float uiWidth = this.canvas.GetComponent<CanvasScaler>().referenceResolution.x;
 
-		float uiWidth = 1920f;
-
-//		float sideBuffer = uiWidth * 0.05f;
 		float sideBuffer = uiWidth * 0;
 
 		float tickMarkSectionWidth = uiWidth + (sideBuffer * 2);
 
 		float scrollLeftEdgePos = (this.timelineScrollRect.content.anchoredPosition.x + (uiWidth / 2));
 
+		float timeBasedOffset = Time.time;
+
 		float scrollLeftEdgeTickPos = scrollLeftEdgePos - (((int)(scrollLeftEdgePos)) % tickSpacing);
 
-		this.tickMarkBaseXPos = -this.timelineScrollRect.content.rect.width/2 - sideBuffer - scrollLeftEdgeTickPos + tickSpacing;
+		this.tickMarkBaseXPos = -this.timelineScrollRect.content.rect.width/2 - sideBuffer - scrollLeftEdgeTickPos + tickSpacing + timeBasedOffset;
 
 		int numberOfTicks = (int)(tickMarkSectionWidth / tickSpacing);
 
@@ -79,7 +78,6 @@ public class TimelineBarUIController : MonoBehaviour {
 				this.timeBarTickMarkTemplate.rectTransform.anchoredPosition.y
 			);
 
-//			float percentagePos = tickMark.transform.position.x / uiWidth;
 			float percentagePos = tickMark.transform.position.x / Screen.width;
 
 			if (percentagePos <= 0.5f) {
@@ -102,42 +100,7 @@ public class TimelineBarUIController : MonoBehaviour {
 			this.timeBarTickMarks[i].gameObject.SetActive(false);
 		}
 	}
-
-	private static float EaseInOutQuad(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * value * value + start;
-		value--;
-		return -end / 2 * (value * (value - 2) - 1) + start;
-	}
-	private static float EaseInOutCirc(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return -end / 2 * (Mathf.Sqrt(1 - value * value) - 1) + start;
-		value -= 2;
-		return end / 2 * (Mathf.Sqrt(1 - value * value) + 1) + start;
-	}
-	private static float EaseInOutExpo(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * Mathf.Pow(2, 10 * (value - 1)) + start;
-		value--;
-		return end / 2 * (-Mathf.Pow(2, -10 * value) + 2) + start;
-	}
-	private static float EaseInOutQuint(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * value * value * value * value * value + start;
-		value -= 2;
-		return end / 2 * (value * value * value * value * value + 2) + start;
-	}
-	private static float EaseInOutCubic(float start, float end, float value){
-		value /= .5f;
-		end -= start;
-		if (value < 1) return end / 2 * value * value * value + start;
-		value -= 2;
-		return end / 2 * (value * value * value + 2) + start;
-	}
+		
 	private static float EaseInOutSine(float start, float end, float value){
 		end -= start;
 		return -end / 2 * (Mathf.Cos(Mathf.PI * value / 1) - 1) + start;
@@ -148,26 +111,15 @@ public class TimelineBarUIController : MonoBehaviour {
 	}
 
 	void Update () {		
-//		if (Time.frameCount % 30 == 0) {
-//			if (this.timeBarTickMarks.Count > 0) {
-////				Debug.Log("First image pos: " + (this.timeBarTickMarks[0].GetComponent<RectTransform>().anchoredPosition.x + this.timelineScrollRect.content.rect.width/2 + this.timelineScrollRect.content.anchoredPosition.x + (Screen.width / this.canvas.GetComponent<CanvasScaler>().scaleFactor)/2));
-////				Debug.Log("First image pos: " + (this.timeBarTickMarks[0].GetComponent<RectTransform>().position.x));
-////				Debug.Log("Last image pos: " + (this.timeBarTickMarks[this.timeBarTickMarks.Count - 1].GetComponent<RectTransform>().position.x));
-//
-//				float screenRatio = (((float)Screen.width) / Screen.height) / (16f/9);
-//
-//				float uiWidth = (this.canvas.GetComponent<CanvasScaler>().referenceResolution.x * screenRatio);
-//
-//				float scrollLeftEdgePos = this.timelineScrollRect.content.anchoredPosition.x + (uiWidth / 2);
-//				Debug.Log("scrollLeftPos: " + scrollLeftEdgePos);
-//			}
-//		}
+		// Close fast forward panel if tapped somewhere outside of it
+		if (this.fastForwardUIPanel.gameObject.activeSelf) {
+			bool inputDown = (Input.touchCount > 0) ? (Input.GetTouch(0).phase == TouchPhase.Began) : Input.GetMouseButtonDown(0);
+			Vector2 inputPos = (Input.touchCount > 0) ? (Input.GetTouch(0).position) : new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 
-//		Debug.Log("scroll x pos: " + this.timelineScrollRect.normalizedPosition.x);
-
-//		if (this.timelineScrollRect.normalizedPosition.x > 0.2f) {
-//			this.timelineScrollRect.normalizedPosition = new Vector2(0.1f, this.timelineScrollRect.normalizedPosition.y);
-//		}
+			if (inputDown && !RectTransformUtility.RectangleContainsScreenPoint(this.fastForwardUIPanel, inputPos)) {
+				this.fastForwardUIPanel.gameObject.SetActive(false);
+			}
+		}
 	}
 
 	public void SetCurrentTime(System.DateTime dateTime) {
@@ -209,6 +161,8 @@ public class TimelineBarUIController : MonoBehaviour {
 	// UI stuff
 	//
 
+	private const float kDelayToCloseFastForwardMenu = 0.05f;
+
 	private Button activeFastForwardButton;
 
 	public void PressedFastFowardButton(Button button) {
@@ -222,7 +176,7 @@ public class TimelineBarUIController : MonoBehaviour {
 
 			this.ShowButtonAsActivated(button, false);
 
-			this.StartCoroutine(this.co_HideFastForwardMenu(0.3f));
+//			this.StartCoroutine(this.co_HideFastForwardMenu(kDelayToCloseFastForwardMenu));
 
 			return;
 		}
@@ -253,7 +207,7 @@ public class TimelineBarUIController : MonoBehaviour {
 
 		this.ShowButtonAsActivated(button, true);
 
-		this.StartCoroutine(this.co_HideFastForwardMenu(0.3f));
+//		this.StartCoroutine(this.co_HideFastForwardMenu(kDelayToCloseFastForwardMenu));
 	}
 
 	private void ShowButtonAsActivated(Button button, bool activated) {

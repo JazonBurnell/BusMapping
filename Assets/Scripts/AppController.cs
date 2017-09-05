@@ -21,39 +21,12 @@ public class AppController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		// XML related
 //		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.Stops, this.LoadCompletedForDataType);
 //		this.busRouteDataController.BeginDownloadingDataForType(BusDataType.RouteStops, this.LoadCompletedForDataType);
 
-//		this.visibleRoutesByRouteId.Add("3");
-//		this.visiblePathsByShapeId.Add("3C_OB_CNT");
-//		this.visiblePathsByShapeId.Add("3C_IB");
-
-		this.busRouteDataController.gtfsDataController.LoadCalendarData(delegate() {
-		});
-
-		this.busRouteDataController.gtfsDataController.LoadRouteData(delegate() { 
-		});
-
-		this.busRouteDataController.gtfsDataController.LoadStopsData(delegate() {
-//			foreach (BusGTFSDataController.StopInfo stopInfo in this.busRouteDataController.gtfsDataController.stopInfos) {
-//				this.mapIndicatorController.AddIndicatorAtLatLong(stopInfo.latlong, 1);
-//			}
-		});
-
-		this.busRouteDataController.gtfsDataController.LoadTripStopPointsData(delegate() {
-			Debug.Log("Trip stop points loaded!");
-
-			this.busRouteDataController.gtfsDataController.LoadTripInfoData(delegate() {
-				Debug.Log("Trip infos loaded too!");
-
-				this.tripDataHasBeenLoaded = true;
-
-//				string routeStringId = "3C_OB_CNT";
-
-			});
-		});		
-
-		this.busRouteDataController.gtfsDataController.LoadShapesData(delegate() {
+		// GTFS related
+		this.busRouteDataController.gtfsDataController.LoadAllGTFSData(delegate() {
 			//			this.StartCoroutine(this.co_LoadCompletedForGTFSDataShapes("3C_OB_CNT", false));
 			//			this.StartCoroutine(this.co_LoadCompletedForGTFSDataShapes("3C_IB", false));
 
@@ -67,7 +40,9 @@ public class AppController : MonoBehaviour {
 					this.StartCoroutine(this.co_LoadCompletedForGTFSDataShapes(routeStringId, false));
 				}
 			}
-		});	
+
+			this.tripDataHasBeenLoaded = true;
+		});
 	}
 
 	void Update () {
@@ -122,7 +97,6 @@ public class AppController : MonoBehaviour {
 					string tripId = tripInfo.tripId;
 
 //					if (tripId.Equals("3-1209-O-92")) // at time 44697 (debug point for sequential same arrival times
-					#warning !!!!
 //					if (tripId.Contains("-1a")) // is Mon - Fri
 					if (this.busRouteDataController.gtfsDataController.TripIdIsActiveForDayOfWeek(tripId, currentDateTime.DayOfWeek))
 					{

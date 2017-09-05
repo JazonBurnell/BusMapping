@@ -33,7 +33,7 @@ public class GoogleMap : MonoBehaviour
 	
 	IEnumerator _Refresh ()
 	{
-		var url = "http://maps.googleapis.com/maps/api/staticmap";
+		var url = "https://maps.googleapis.com/maps/api/staticmap";
 		var qs = "";
 		if (!autoLocateCenter) {
 			if (centerLocation.address != "")
@@ -86,11 +86,20 @@ public class GoogleMap : MonoBehaviour
 //		}
 
 		var req = new WWW (url + "?" + qs);
+
+		Debug.Log("Beginning google map request...");
+
 		yield return req;
 
-		if (req.error != null && req.texture != null) {
+		if (req.texture != null) {
 			GetComponent<Renderer>().material.mainTexture = req.texture;
+
+			Debug.Log("Google map succeeded, tex: " + req.texture + " byte size: " + (((float)req.size) / (1024*1024)) + " MB");
 		}
+		else {
+			Debug.LogError("Google map failed, req.error: " + req.error + " tex: " + req.texture);
+		}
+
 	}
 	
 	
