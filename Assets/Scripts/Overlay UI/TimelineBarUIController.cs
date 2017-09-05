@@ -6,8 +6,13 @@ using UnityEngine.UI;
 public class TimelineBarUIController : MonoBehaviour {
 	public Canvas canvas;
 
+	public RectTransform upperBarTransform;
+
 	public Text currentTimeMainLabel;
 	public Text currentTimeShadowLabel;
+
+	public Text timeFromNowMainLabel;
+	public Text timeFromNowShadowLabel;
 
 	public ScrollRect timelineScrollRect;
 	public Image timeBarTickMarkTemplate;
@@ -17,6 +22,8 @@ public class TimelineBarUIController : MonoBehaviour {
 
 	public RectTransform fastForwardUIPanel;
 //	private List<Button> fastForwardSubButtons = new List<Button>();
+
+	private float currentShowTimeFromNowPercentage = 0;
 
 	public float playSpeedScalar = 1f;
 
@@ -46,11 +53,9 @@ public class TimelineBarUIController : MonoBehaviour {
 
 		float scrollLeftEdgePos = (this.timelineScrollRect.content.anchoredPosition.x + (uiWidth / 2));
 
-		float timeBasedOffset = Time.time;
-
 		float scrollLeftEdgeTickPos = scrollLeftEdgePos - (((int)(scrollLeftEdgePos)) % tickSpacing);
 
-		this.tickMarkBaseXPos = -this.timelineScrollRect.content.rect.width/2 - sideBuffer - scrollLeftEdgeTickPos + tickSpacing + timeBasedOffset;
+		this.tickMarkBaseXPos = -this.timelineScrollRect.content.rect.width/2 - sideBuffer - scrollLeftEdgeTickPos + tickSpacing;
 
 		int numberOfTicks = (int)(tickMarkSectionWidth / tickSpacing);
 
@@ -133,6 +138,41 @@ public class TimelineBarUIController : MonoBehaviour {
 		this.currentTimeMainLabel.text = this.currentTimeShadowLabel.text = dateTimeString;
 
 		this.currentTimeMainLabel.transform.parent.SetAsLastSibling();
+
+		System.TimeSpan timeSpanFromNow = (dateTime - System.DateTime.Now);
+
+		string timeFromNowSign = (timeSpanFromNow.TotalSeconds >= 0) ? "+" : "";
+		int days = timeSpanFromNow.Days;
+		int hours = timeSpanFromNow.Hours;
+		int minutes = timeSpanFromNow.Minutes;
+
+		bool timeFromNowShouldBeVisible = (((int)timeSpanFromNow.TotalMinutes) != 0);
+
+		if (!timeFromNowShouldBeVisible) {
+			this.timeFromNowMainLabel.text = this.timeFromNowShadowLabel.text = "(now + 0 min)";
+		}
+		else {
+			string daysDescription = (days == 1) ? "day" : "days";
+			string hoursDescription = (hours == 1) ? "hr" : "hrs";
+			string minutesDescription = (minutes == 1) ? "min" : "mins";
+
+			string timeFromNowString = "(now " + timeFromNowSign;
+
+			if (days > 0)
+				timeFromNowString += " " + days + " " + daysDescription;
+			if (hours > 0)
+				timeFromNowString += " " + hours + " " + hoursDescription;
+			
+			timeFromNowString += " " + minutes + " " + minutesDescription + ")";
+
+			this.timeFromNowMainLabel.text = this.timeFromNowShadowLabel.text = timeFromNowString;
+		}
+
+		this.currentShowTimeFromNowPercentage = Mathf.Lerp(this.currentShowTimeFromNowPercentage, ((timeFromNowShouldBeVisible) ? 1 : 0), Time.deltaTime * 10);
+
+		this.upperBarTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Lerp(48f, 69f, this.currentShowTimeFromNowPercentage));
+		this.timeFromNowMainLabel.color = new Color(this.timeFromNowMainLabel.color.r, this.timeFromNowMainLabel.color.g, this.timeFromNowMainLabel.color.b, this.currentShowTimeFromNowPercentage);
+		this.timeFromNowShadowLabel.color = new Color(this.timeFromNowShadowLabel.color.r, this.timeFromNowShadowLabel.color.g, this.timeFromNowShadowLabel.color.b, this.currentShowTimeFromNowPercentage);
 	}
 		
 	public string AddOrdinal(int num) { // https://stackoverflow.com/questions/20156/is-there-an-easy-way-to-create-ordinals-in-c/20166#20166
