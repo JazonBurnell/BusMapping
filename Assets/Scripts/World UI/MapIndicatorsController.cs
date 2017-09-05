@@ -2,38 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct LatitudeLongitude {
-	public double latitude;// = 61.180912;
-	public double longitude;// = -149.974061;
-
-	public LatitudeLongitude(double latIn, double longIn) {
-		this.latitude = latIn;
-		this.longitude = longIn;
-	}
-
-	public static LatitudeLongitude Lerp(LatitudeLongitude valueA, LatitudeLongitude valueB, double percentage) {
-		return new LatitudeLongitude(
-			(valueA.latitude * (1.0 - percentage)) + (valueB.latitude * percentage),
-			(valueA.longitude * (1.0 - percentage)) + (valueB.longitude * percentage)
-		);
-	}
-
-	public static LatitudeLongitude operator +(LatitudeLongitude left, LatitudeLongitude right)
-	{
-		left.latitude += right.latitude;
-		left.longitude += right.longitude;
-		return left;
-	}
-
-	public static LatitudeLongitude operator -(LatitudeLongitude left, LatitudeLongitude right)
-	{
-		left.latitude -= right.latitude;
-		left.longitude -= right.longitude;
-		return left;
-	}
-}
-
 public class MapIndicatorsController : MonoBehaviour {
 	public MeshRenderer referenceCube;
 
