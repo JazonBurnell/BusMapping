@@ -19,6 +19,10 @@ public struct LatitudeLongitude {
 		);
 	}
 
+	public static double Distance(LatitudeLongitude valueA, LatitudeLongitude valueB) {
+		return (double) Vector2.Distance(new Vector2((float)valueA.latitude, (float)valueA.longitude), new Vector2((float)valueB.latitude, (float)valueB.longitude));
+	}
+
 	public static LatitudeLongitude operator +(LatitudeLongitude left, LatitudeLongitude right)
 	{
 		left.latitude += right.latitude;

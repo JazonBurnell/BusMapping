@@ -13,18 +13,18 @@ public class BusGTFSDataController : MonoBehaviour {
 			this.LoadRouteData(delegate() { 
 				this.LoadStopsData(delegate() {
 					this.LoadTripStopPointsData(delegate() {
-						//			Debug.Log("Trip stop points loaded!");
+						//            Debug.Log("Trip stop points loaded!");
 
 						this.LoadTripInfoData(delegate() {
-							//				Debug.Log("Trip infos loaded too!");
+							//                Debug.Log("Trip infos loaded too!");
 
 							this.LoadShapesData(delegate() {
 
 								dataLoadedCallback();
 
-							});	
+							});    
 						});
-					});		
+					});        
 				});
 			});
 		});
@@ -41,14 +41,14 @@ public class BusGTFSDataController : MonoBehaviour {
 	private const int kShapesDataRouteMaxLength = 650; // largest was 615 for route 102_IB
 
 	public void LoadShapesData(System.Action dataLoadedCallback) {
-		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
-			string routeStringId = lineComponents[0];
+		System.Action<CSVLineDataHandler> lineProcessor = delegate(CSVLineDataHandler lineComponents) {
+			string routeStringId = lineComponents["shape_id"];
 
 			if (!this.shapesLatLongsByRouteStringId.ContainsKey(routeStringId)) {
 				this.shapesLatLongsByRouteStringId.Add(routeStringId, new List<LatitudeLongitude>(kShapesDataRouteMaxLength));
 			}
 
-			this.shapesLatLongsByRouteStringId[routeStringId].Add(new LatitudeLongitude(double.Parse(lineComponents[1]), double.Parse(lineComponents[2])));
+			this.shapesLatLongsByRouteStringId[routeStringId].Add(new LatitudeLongitude(double.Parse(lineComponents["shape_pt_lat"]), double.Parse(lineComponents["shape_pt_lon"])));
 		};
 
 		this.ProcessCSVData(this.shapesTextData.text, lineProcessor, 4, dataLoadedCallback);
@@ -62,6 +62,25 @@ public class BusGTFSDataController : MonoBehaviour {
 		#endif
 	}
 
+	public LatitudeLongitude LatLongClosestToPointOnRoughShapePath(LatitudeLongitude searchPoint, string routeShapeId) {
+		if (!this.shapesLatLongsByRouteStringId.ContainsKey(routeShapeId) || this.shapesLatLongsByRouteStringId[routeShapeId].Count == 0) {
+			Debug.LogWarning("Couldn't find route path data for shape id: " + routeShapeId);
+
+			return searchPoint;
+		}
+
+		List<LatitudeLongitude> latLongList = this.shapesLatLongsByRouteStringId[routeShapeId];
+
+		LatitudeLongitude closestLatLong = latLongList[0];
+
+		foreach (LatitudeLongitude latLong in latLongList) {
+			if (LatitudeLongitude.Distance(searchPoint, latLong) < LatitudeLongitude.Distance(searchPoint, closestLatLong))
+				closestLatLong = latLong;
+		}
+
+		return closestLatLong;
+	}
+
 	//
 	// Stops
 	//
@@ -71,34 +90,44 @@ public class BusGTFSDataController : MonoBehaviour {
 	public struct StopInfo {
 		public LatitudeLongitude latlong;
 		public int stopId;
-//		public int btId; // not sure what bt_id is for... 
+		//        public int btId; // not sure what bt_id is for... 
 		public string stopName;
 	}
 
 	public List<StopInfo> stopInfos; // indexed by stopId
 
 	public void LoadStopsData(System.Action dataLoadedCallback) {
-		this.stopInfos = new List<StopInfo>(7050); // highest stopId is 7012, but there are tons of gaps within that
+		this.stopInfos = new List<StopInfo>(7030); // highest stopId is 7027, but there are tons of gaps within that
 
 		StopInfo nullStop = new StopInfo();
+		nullStop.stopId = -1;
 
-		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
-			int stopId = int.Parse(lineComponents[2]);
+		System.Action<CSVLineDataHandler> lineProcessor = delegate(CSVLineDataHandler lineComponents) {
+			int stopId = int.Parse(lineComponents["stop_id"]);
 
 			StopInfo newStopInfo = new StopInfo();
-			newStopInfo.latlong = new LatitudeLongitude(double.Parse(lineComponents[0]), double.Parse(lineComponents[1]));
+			newStopInfo.latlong = new LatitudeLongitude(double.Parse(lineComponents["stop_lat"]), double.Parse(lineComponents["stop_lon"]));
 			newStopInfo.stopId = stopId;
-			newStopInfo.stopName = lineComponents[4];
+			newStopInfo.stopName = lineComponents["stop_name"];
 
-			if (this.stopInfos.Count > stopId) {
-				Debug.LogWarning("Out of order stop detected at count: " + this.stopInfos.Count + " stopId: " + stopId);
-			}
-			else {
-				while (this.stopInfos.Count < (stopId))
-					this.stopInfos.Add(nullStop);
+			while (this.stopInfos.Count <= (stopId))
+				this.stopInfos.Add(nullStop);
 
-				this.stopInfos.Add(newStopInfo);
+			if (this.stopInfos[stopId].stopId >= 0) {
+				Debug.LogError("Stop id collision, two stops found for stop id: " + stopId);
 			}
+
+			this.stopInfos[stopId] = newStopInfo;
+
+//			if (this.stopInfos.Count > stopId) {
+//				Debug.LogWarning("Out of order stop detected at count: " + this.stopInfos.Count + " stopId: " + stopId);
+//			}
+//			else {
+//				while (this.stopInfos.Count < (stopId))
+//					this.stopInfos.Add(nullStop);
+//
+//				this.stopInfos.Add(newStopInfo);
+//			}
 		};
 
 		this.ProcessCSVData(this.stopsTextData.text, lineProcessor, 5, dataLoadedCallback);
@@ -134,27 +163,50 @@ public class BusGTFSDataController : MonoBehaviour {
 	public Dictionary<string, List<StopPointInfo>> stopPointInfosByTripId = new Dictionary<string, List<StopPointInfo>>();
 
 	public void LoadTripStopPointsData(System.Action dataLoadedCallback) {
-		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
-			string tripId = lineComponents[0];
+		/*trip_id,arrival_time,departure_time,stop_id,stop_sequence,pickup_type,drop_off_type*/
+		System.Action<CSVLineDataHandler> lineProcessor = delegate(CSVLineDataHandler lineComponents) {
+			StopPointInfo nullStopPoint = new StopPointInfo();
+			nullStopPoint.stopId = -1;
+
+			string tripId = lineComponents["trip_id"];
 
 			if (!this.stopPointInfosByTripId.ContainsKey(tripId)) {
 
-//				if (tripId.Equals("3-1636-I-1a"))
-//					Debug.Log("Adding tripId: <" + tripId + ">");
+				//                if (tripId.Equals("3-1636-I-1a"))
+				//                    Debug.Log("Adding tripId: <" + tripId + ">");
 
 				this.stopPointInfosByTripId.Add(tripId, new List<StopPointInfo>(100));
 			}
 
 			StopPointInfo newStopPoint = new StopPointInfo();
 
-			newStopPoint.arrivalTimeString = lineComponents[1];
-			newStopPoint.departureTimeString = lineComponents[2];
-			newStopPoint.stopId = int.Parse(lineComponents[3]);
-			newStopPoint.sequence = int.Parse(lineComponents[4]);
+			newStopPoint.arrivalTimeString = lineComponents["arrival_time"];
+			newStopPoint.departureTimeString = lineComponents["departure_time"];
+			newStopPoint.stopId = int.Parse(lineComponents["stop_id"]);
+			newStopPoint.sequence = int.Parse(lineComponents["stop_sequence"]);
 
 			newStopPoint.arrivalSecondsIntoTheDay = SecondsIntoDayForTimeString(newStopPoint.arrivalTimeString);
 
-			this.stopPointInfosByTripId[tripId].Add(newStopPoint);
+			int arrayIndexForNewStop = newStopPoint.sequence - 1;
+
+			{
+				if (arrayIndexForNewStop < 0 || arrayIndexForNewStop > 10000) {
+					Debug.LogError("Sequence is <= 0 or very large for trip id: " + tripId + " for sequence: " + newStopPoint.sequence);
+
+					arrayIndexForNewStop = 0;
+				}
+
+				while (this.stopPointInfosByTripId[tripId].Count <= arrayIndexForNewStop) 
+					this.stopPointInfosByTripId[tripId].Add(nullStopPoint);
+
+				if (this.stopPointInfosByTripId[tripId][arrayIndexForNewStop].stopId != -1)
+					Debug.LogWarning("Previous stop not null for tripId: " + tripId + " stopId: " + newStopPoint.stopId);
+			}
+
+			this.stopPointInfosByTripId[tripId][arrayIndexForNewStop] = newStopPoint;
+
+			// Original
+//			this.stopPointInfosByTripId[tripId].Add(newStopPoint);
 		};
 
 		this.ProcessCSVData(this.stopTimesTextData.text, lineProcessor, 7, dataLoadedCallback);
@@ -231,10 +283,10 @@ public class BusGTFSDataController : MonoBehaviour {
 
 	public struct TripInfo {
 		/*
-		 	bikes_allowed,	route_id,		wheelchair_accessible,	direction_id,	trip_headsign,				service_id,		shape_id,				trip_id
-			1,				13,				1,						0,				Senior Center/Muldoon,		92,				13_OB,					13-1420-O-92
-			2,				ERC,			1,						1,				Muldoon Transfer Center,	1a,				ERC_IB_to_MULDOON,		ERC-800-I-1a
-		*/
+             bikes_allowed,    route_id,        wheelchair_accessible,    direction_id,    trip_headsign,                service_id,        shape_id,                trip_id
+            1,                13,                1,                        0,                Senior Center/Muldoon,        92,                13_OB,                    13-1420-O-92
+            2,                ERC,            1,                        1,                Muldoon Transfer Center,    1a,                ERC_IB_to_MULDOON,        ERC-800-I-1a
+        */
 
 		public int bikesAllowed;
 		public string routeId;
@@ -249,33 +301,33 @@ public class BusGTFSDataController : MonoBehaviour {
 	public Dictionary<string, List<TripInfo>> tripInfosByRouteId = new Dictionary<string, List<TripInfo>>();
 
 	public void LoadTripInfoData(System.Action dataLoadedCallback) {
-		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+		System.Action<CSVLineDataHandler> lineProcessor = delegate(CSVLineDataHandler lineComponents) {
 			#if UNITY_EDITOR
 			try 
 			#endif
 			{
-//				int routeId = int.Parse(lineComponents[1]);
-				string routeId = lineComponents[1];
+				//                int routeId = int.Parse(lineComponents[1]);
+				string routeId = lineComponents["route_id"];
 
 				if (!this.tripInfosByRouteId.ContainsKey(routeId)) {
 					this.tripInfosByRouteId.Add(routeId, new List<TripInfo>(150));
 				}
 
 				TripInfo newTripInfo = new TripInfo();
-				newTripInfo.bikesAllowed = int.Parse(lineComponents[0]);
+				newTripInfo.bikesAllowed = int.Parse(lineComponents["bikes_allowed"]);
 				newTripInfo.routeId = routeId;
-				newTripInfo.wheelchairAccessible = int.Parse(lineComponents[2]);
-				newTripInfo.directionId = int.Parse(lineComponents[3]);
-				newTripInfo.tripHeadSign = lineComponents[4];
-				newTripInfo.serviceId = lineComponents[5];
-				newTripInfo.shapeId = lineComponents[6];
-				newTripInfo.tripId = lineComponents[7];
+				newTripInfo.wheelchairAccessible = int.Parse(lineComponents["wheelchair_accessible"]);
+				newTripInfo.directionId = int.Parse(lineComponents["direction_id"]);
+				newTripInfo.tripHeadSign = lineComponents["trip_headsign"];
+				newTripInfo.serviceId = lineComponents["service_id"];
+				newTripInfo.shapeId = lineComponents["shape_id"];
+				newTripInfo.tripId = lineComponents["trip_id"];
 
 				this.tripInfosByRouteId[routeId].Add(newTripInfo);
 			}
 			#if UNITY_EDITOR
 			catch (System.Exception e) {
-				Debug.LogError("Encoutnered error: " + e.ToString() + " on tripId: " + lineComponents[7]);
+				Debug.LogError("Encoutnered error: " + e.ToString() + " on tripId: " + lineComponents["trip_id"]);
 			}
 			#endif
 		};
@@ -291,9 +343,9 @@ public class BusGTFSDataController : MonoBehaviour {
 
 	public struct RouteInfo {
 		/*
-		route_id,	agency_id,					route_short_name,	route_long_name,	route_desc,				route_type,		route_url,																	route_color,	route_text_color
-		1,			Anchorage People Mover,		1,					CROSSTOWN,			"Route 1 trav[...]",	3,				http://www.muni.org/departments/transit/peoplemover/Pages/route1.aspx,		DB4040,			FFFFFF
-		*/
+        route_id,    agency_id,                    route_short_name,    route_long_name,    route_desc,                route_type,        route_url,                                                                    route_color,    route_text_color
+        1,            Anchorage People Mover,        1,                    CROSSTOWN,            "Route 1 trav[...]",    3,                http://www.muni.org/departments/transit/peoplemover/Pages/route1.aspx,        DB4040,            FFFFFF
+        */
 
 		public string routeId;
 		public string agencyId;
@@ -309,18 +361,18 @@ public class BusGTFSDataController : MonoBehaviour {
 	public Dictionary<string, RouteInfo> routeInfosByRouteId = new Dictionary<string, RouteInfo>();
 
 	public void LoadRouteData(System.Action dataLoadedCallback) {
-		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+		System.Action<CSVLineDataHandler> lineProcessor = delegate(CSVLineDataHandler lineComponents) {
 			RouteInfo newRouteInfo = new RouteInfo();
 
-			newRouteInfo.routeId = lineComponents[0];
-			newRouteInfo.agencyId = lineComponents[1];
-			newRouteInfo.routeShortName = lineComponents[2];
-			newRouteInfo.routeLongName = lineComponents[3];
-			newRouteInfo.routeDescription = lineComponents[4];
-			newRouteInfo.routeType = int.Parse(lineComponents[5]);
-			newRouteInfo.routeURL = lineComponents[6];
-			newRouteInfo.routeColor = ColorForHexString(lineComponents[7]);
-			newRouteInfo.routeTextColor = ColorForHexString(lineComponents[8]);
+			newRouteInfo.routeId = lineComponents["route_id"];
+			newRouteInfo.agencyId = lineComponents["agency_id"];
+			newRouteInfo.routeShortName = lineComponents["route_short_name"];
+			newRouteInfo.routeLongName = lineComponents["route_long_name"];
+			newRouteInfo.routeDescription = lineComponents["route_desc"];
+			newRouteInfo.routeType = int.Parse(lineComponents["route_type"]);
+			newRouteInfo.routeURL = lineComponents["route_url"];
+			newRouteInfo.routeColor = ColorForHexString(lineComponents["route_color"]);
+			newRouteInfo.routeTextColor = ColorForHexString(lineComponents["route_text_color"]);
 
 			this.routeInfosByRouteId.Add(newRouteInfo.routeId, newRouteInfo);
 		};
@@ -357,7 +409,7 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 1a,1,1,1,1,1,0,0,20160801,20180604
 2a,0,0,0,0,0,1,0,20160801,20180604
 92,0,0,0,0,0,0,0,20160801,20180604
-		*/
+        */
 		public string serviceId;
 		public int[] days;
 		public int startDate;
@@ -367,27 +419,41 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 	public Dictionary<string, CalendarInfo> calendarInfoByServiceId = new Dictionary<string, CalendarInfo>();
 
 	public void LoadCalendarData(System.Action dataLoadedCallback) {
-		System.Action<string[]> lineProcessor = delegate(string[] lineComponents) {
+		System.Action<CSVLineDataHandler> lineProcessor = delegate(CSVLineDataHandler lineComponents) {
 			CalendarInfo newCalendarInfo = new CalendarInfo();
 
-			string serviceId = lineComponents[0];
+			string serviceId = lineComponents["service_id"];
 
 			int[] daysArray = new int[7];
 
-			for (int i = 0; i < 7; i++) {
-				daysArray[i] = int.Parse(lineComponents[i+1]);
-			}
+			//            if (!lineComponents.ContainsKey("monday")) {
+			//                foreach (KeyValuePair<string, string> pair in lineComponents) {
+			//                    Debug.LogError(pair.Key);
+			//                }
+			//            }
+
+			daysArray[0] = int.Parse(lineComponents["monday"]);
+			daysArray[1] = int.Parse(lineComponents["tuesday"]);
+			daysArray[2] = int.Parse(lineComponents["wednesday"]);
+			daysArray[3] = int.Parse(lineComponents["thursday"]);
+			daysArray[4] = int.Parse(lineComponents["friday"]);
+			daysArray[5] = int.Parse(lineComponents["saturday"]);
+			daysArray[6] = int.Parse(lineComponents["sunday"]);
+
+			//            for (int i = 0; i < 7; i++) {
+			//                daysArray[i] = int.Parse(lineComponents[i+1]);
+			//            }
 
 			newCalendarInfo.serviceId = serviceId;
 			newCalendarInfo.days = daysArray;
-			newCalendarInfo.startDate = int.Parse(lineComponents[8]);
-			newCalendarInfo.endDate = int.Parse(lineComponents[9]);
+			newCalendarInfo.startDate = int.Parse(lineComponents["start_date"]);
+			newCalendarInfo.endDate = int.Parse(lineComponents["end_date"]);
 
 			this.calendarInfoByServiceId.Add(serviceId, newCalendarInfo);
 		};
 
 		this.ProcessCSVData(this.calendarTextData.text, lineProcessor, 10, dataLoadedCallback);
-	}		
+	}        
 
 	public bool TripIdIsActiveForDayOfWeek(string tripId, System.DayOfWeek dayOfWeek) {
 
@@ -399,8 +465,8 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 
 			if (tripId.Length >= serviceId.Length && tripId.Substring(tripId.Length - serviceId.Length, serviceId.Length).Equals(serviceId)) {
 				if (pair.Value.days[calendarInfoDayIndex] > 0) {
-//					if (Time.frameCount % 30 == 0)
-//						Debug.Log("Hit on service id: " + serviceId + " tripId: " + tripId + " dayOfWeek: " + (int)dayOfWeek);
+					//                    if (Time.frameCount % 30 == 0)
+					//                        Debug.Log("Hit on service id: " + serviceId + " tripId: " + tripId + " dayOfWeek: " + (int)dayOfWeek);
 
 					return true;
 				}
@@ -414,10 +480,41 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 	// General Processing
 	//
 
-	private void ProcessCSVData(string csvText, System.Action<string[]> processLineCallback, int expectedNumberOfColumns, System.Action dataFinishedProcessingCallback) {
-		string[] csvTextLines = csvText.Split(new string[]{"\n"}, System.StringSplitOptions.None);
+	class CSVLineDataHandler : System.Object {
+		private Dictionary <string, string> dictionary;
 
-		for (int i = 1; i < csvTextLines.Length; i++) {
+		public CSVLineDataHandler() {
+			this.dictionary = new Dictionary<string, string>();
+		}
+
+		public void Clear() {
+			this.dictionary.Clear();
+		}
+
+		public void Add(string key, string value) {
+			this.dictionary.Add(key, value);
+		}
+
+		public string this[string key] {
+			get {
+				if (this.dictionary.ContainsKey(key))
+					return this.dictionary[key];
+				else
+					return "";
+			}
+		}
+	}
+
+	private CSVLineDataHandler cachedCSVLineHandler;
+
+	private void ProcessCSVData(string csvText, System.Action<CSVLineDataHandler> processLineCallback, int expectedNumberOfColumns, System.Action dataFinishedProcessingCallback) {
+		string[] csvTextLines = csvText.Split(new string[]{"\n"}, System.StringSplitOptions.None);    
+
+		this.cachedCSVLineHandler = new CSVLineDataHandler();
+
+		List<string> csvColumnHeader = null; //new List<string>();
+
+		for (int i = 0; i < csvTextLines.Length; i++) {
 			string csvLine = csvTextLines[i];
 
 			if (csvLine.Contains("\"")) {
@@ -429,14 +526,39 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 
 			string[] lineComponents = csvLine.Split(new string[]{","}, System.StringSplitOptions.None);
 
-			lineComponents[lineComponents.Length-1] = lineComponents[lineComponents.Length-1].Trim(); // Last entry has lingering line break at end for some reason... 
+			// Remove the line break, last entry has lingering line break at end for some reason... 
+			lineComponents[lineComponents.Length-1] = lineComponents[lineComponents.Length-1].Trim();
 
-			if (lineComponents.Length == expectedNumberOfColumns) {
-				processLineCallback(lineComponents);
+			if (i == 0) {
+				csvColumnHeader = new List<string>(lineComponents);
+
+//				#if UNITY_EDITOR
+//				string totalColumnHeader = "";
+//				foreach (string s in csvColumnHeader)
+//					totalColumnHeader += s + " --- ";
+//				Debug.Log("Column Header is: " + totalColumnHeader);
+//				#endif
 			}
 			else {
-				if (i != csvTextLines.Length - 1) // Last line might be empty
-					Debug.LogError("Line: " + i + " doesn't have " + expectedNumberOfColumns + " components: " + csvTextLines[i] + " instead has: " + lineComponents.Length);
+
+				if (lineComponents.Length == 1 && lineComponents[0].Trim().Length == 0) {
+					// Do nothing, most likely empty last line
+				}
+
+				//                if (lineComponents.Length == expectedNumberOfColumns) 
+				else {
+					this.cachedCSVLineHandler.Clear();
+
+					for (int j = 0; j < lineComponents.Length; j++) {
+						this.cachedCSVLineHandler.Add(csvColumnHeader[j].Trim(), lineComponents[j].Trim());
+					}
+
+					processLineCallback(this.cachedCSVLineHandler);
+				}
+				//                else {
+				//                    if (i != csvTextLines.Length - 1) // Last line might be empty
+				//                        Debug.LogError("Line: " + i + " doesn't have " + expectedNumberOfColumns + " components: " + csvTextLines[i] + " instead has: " + lineComponents.Length);
+				//                }
 			}
 		}
 
@@ -449,8 +571,8 @@ service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,e
 //
 
 public struct BusGTFSStopData {
-	/* 	stop_lat,	stop_lon,		stop_id,	bt_id,	stop_name
-		61.216517,	-149.886091,	0002,		2788,	6TH AVENUE & C STREET ESE    */
+	/*     stop_lat,    stop_lon,        stop_id,    bt_id,    stop_name
+        61.216517,    -149.886091,    0002,        2788,    6TH AVENUE & C STREET ESE    */
 
 	public LatitudeLongitude latLong;
 	public int stopId;

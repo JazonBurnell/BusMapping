@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class TimelineBarUIController : MonoBehaviour {
+	public AppController mainAppController;
+
 	public Canvas canvas;
 
 	public RectTransform upperBarTransform;
@@ -115,6 +117,8 @@ public class TimelineBarUIController : MonoBehaviour {
 		this.UpdateTickMarks();
 	}
 
+	private bool didCloseAtTouchDown = false;
+
 	void Update () {		
 		// Close fast forward panel if tapped somewhere outside of it
 		if (this.fastForwardUIPanel.gameObject.activeSelf) {
@@ -123,7 +127,15 @@ public class TimelineBarUIController : MonoBehaviour {
 
 			if (inputDown && !RectTransformUtility.RectangleContainsScreenPoint(this.fastForwardUIPanel, inputPos)) {
 				this.fastForwardUIPanel.gameObject.SetActive(false);
+
+				this.didCloseAtTouchDown = true;
 			}
+		}
+
+		bool inputUp = (Input.touchCount > 0) ? (Input.GetTouch(0).phase == TouchPhase.Ended || Input.GetTouch(0).phase == TouchPhase.Canceled) : Input.GetMouseButtonUp(0);
+
+		if (inputUp) {
+			this.didCloseAtTouchDown = false;
 		}
 	}
 
@@ -206,8 +218,15 @@ public class TimelineBarUIController : MonoBehaviour {
 	private Button activeFastForwardButton;
 
 	public void PressedFastFowardButton(Button button) {
+		if (this.didCloseAtTouchDown) {
+			this.didCloseAtTouchDown = false;
+			return;
+		}
+
 		this.fastForwardUIPanel.gameObject.SetActive(!this.fastForwardUIPanel.gameObject.activeSelf);
 	}
+
+	private int numberOfDaysSkippedAhead = 0;
 
 	public void PressedFastForwardMenuSubButton(Button button) {
 		if (this.activeFastForwardButton == button) {
@@ -228,11 +247,41 @@ public class TimelineBarUIController : MonoBehaviour {
 			return;
 		}
 
+		bool showButtonAsActive = false;
+
 		if (buttonLabel.text.Substring(0,buttonLabel.text.Length - 2).Contains("Fast Forward ")) {
 			int parsedValue;
 			if (int.TryParse(buttonLabel.text.Replace("Fast Forward ", "").Replace("x", ""), out parsedValue)) {
 				this.playSpeedScalar = parsedValue;
 			}
+
+			showButtonAsActive = true;
+		}
+		else if (buttonLabel.text.Contains("Reset")) {
+			this.playSpeedScalar = 1;
+
+			this.numberOfDaysSkippedAhead = 0;
+
+			this.mainAppController.ResetAllTiming();
+
+			this.timelineScrollRect.normalizedPosition = new Vector2(0,0);
+		}
+		else if (buttonLabel.text.Contains("Next Day")) {
+			this.playSpeedScalar = 1;
+
+			this.numberOfDaysSkippedAhead++;
+
+			this.timelineScrollRect.normalizedPosition = new Vector2(0,0);
+
+//			System.DateTime startOfDayDateTime = new System.DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day);
+//			float currentSecondsIntoDay = (float) (System.DateTime.Now - startOfDayDateTime).TotalSeconds;
+
+			System.DateTime nextDayStartTime = new System.DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day).AddDays(this.numberOfDaysSkippedAhead).AddHours(9);
+			float offset = (float) (nextDayStartTime - System.DateTime.Now).TotalSeconds;
+
+			this.mainAppController.ResetAllTiming(offset);
+
+//			Debug.Log("Pressed Next Day");
 		}
 		else {
 			Debug.LogWarning("Was expecting button text to contain string Fast Forward");
@@ -243,9 +292,14 @@ public class TimelineBarUIController : MonoBehaviour {
 			this.ShowButtonAsActivated(this.activeFastForwardButton, false);
 		}
 
-		this.activeFastForwardButton = button;
+		if (showButtonAsActive) {
+			this.activeFastForwardButton = button;
 
-		this.ShowButtonAsActivated(button, true);
+			this.ShowButtonAsActivated(button, true);
+		}
+		else {
+			this.activeFastForwardButton = null;
+		}
 
 //		this.StartCoroutine(this.co_HideFastForwardMenu(kDelayToCloseFastForwardMenu));
 	}

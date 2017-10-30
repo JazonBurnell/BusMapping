@@ -53,6 +53,11 @@ public class AppController : MonoBehaviour {
 
 	private float playSpeedTimeOffset = 0;
 
+	public void ResetAllTiming(float newOffsetInSeconds = 0) {
+		this.playSpeedTimeOffset = newOffsetInSeconds;
+		this.timeOffset = 0;
+	}
+
 	private void UpdateBusPositions() {
 //		float fractionalSecond = 0;// (float) (System.DateTime.Now - new System.DateTime(System.DateTime.Now.Year, System.DateTime.Now.Month, System.DateTime.Now.Day, System.DateTime.Now.Hour, System.DateTime.Now.Minute, System.DateTime.Now.Second)).TotalSeconds;
 //
@@ -121,6 +126,12 @@ public class AppController : MonoBehaviour {
 									LatitudeLongitude stopBLongLat = this.busRouteDataController.gtfsDataController.stopInfos[stopInfoB.stopId].latlong;
 
 									LatitudeLongitude percentageLatLong = LatitudeLongitude.Lerp(stopALongLat, stopBLongLat, (double) percentageBetweenStops);
+
+//									#warning !
+//									{
+//										if (tripId.Contains("65")) // Experimenting with fix for buses going off path, example at 6:21:14pm on Sunday for Route 65
+//											percentageLatLong = this.busRouteDataController.gtfsDataController.LatLongClosestToPointOnRoughShapePath(percentageLatLong, "65_IB_to_DIMOND_2017");
+//									}
 
 									//										this.mapIndicatorController.AddIndicatorAtLatLong(stopALongLat, 4);
 									//										this.mapIndicatorController.AddIndicatorAtLatLong(stopBLongLat, 4);

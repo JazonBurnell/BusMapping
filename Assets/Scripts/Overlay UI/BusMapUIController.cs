@@ -38,7 +38,7 @@ public class BusMapUIController : MonoBehaviour {
 		newBusIndicator.SetLabelString(routeInfo.routeId);
 		newBusIndicator.idString = idString;
 		newBusIndicator.backgroundImage.color = Color.Lerp(routeInfo.routeColor, Color.black, 0.0f);
-		newBusIndicator.shadowLabel.color = routeInfo.routeTextColor;
+		newBusIndicator.shadowLabel.color = Color.white;// routeInfo.routeTextColor;
 
 		newBusIndicator.name += " - " + idString;
 
