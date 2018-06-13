@@ -75,12 +75,13 @@ public class GPSPositionTracker : MonoBehaviour {
 	public void UserDidPressOutputButton(Button button) {
 		string email = "jazon.burnell@gmail.com";
 
-		string subject = "Test GPS Data";
+		string subject = "GPS Data";
 
 		string outputString = "altitude, horizontalAccuracy, latitude, longitude, timestamp, verticalAccuracy\n";
 
 		foreach (LocationInfo locInfo in this.storedLocationInfos) {
-//			outputString += 
+//			outputString += locInfo.altitude + "," + 
+			outputString += locInfo.altitude + "," + locInfo.horizontalAccuracy + "," + locInfo.latitude + "," + locInfo.longitude + "," + locInfo.timestamp + "," + locInfo.verticalAccuracy + "\n";
 		}
 
 //		altitude	Geographical device location altitude.
@@ -90,7 +91,7 @@ public class GPSPositionTracker : MonoBehaviour {
 //		timestamp	Timestamp (in seconds since 1970) when location was last time updated.
 //		verticalAccuracy	Vertical accuracy of the location.
 
-		string body = "Hi";
+		string body = outputString;
 
 		Application.OpenURL ("mailto:" + email + "?subject=" + EscapeURL(subject) + "&body=" + EscapeURL(body));
 	}
