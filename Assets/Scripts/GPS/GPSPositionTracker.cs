@@ -72,6 +72,10 @@ public class GPSPositionTracker : MonoBehaviour {
 		}
 	}
 
+	public void UserDidPressCloseButton(Button button) {
+		button.transform.parent.gameObject.SetActive(false);
+	}
+
 	public void UserDidPressOutputButton(Button button) {
 		string email = "jazon.burnell@gmail.com";
 
